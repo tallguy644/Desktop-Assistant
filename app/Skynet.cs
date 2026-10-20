@@ -305,6 +305,7 @@ namespace JarvisDesk {
  static class Program {
   [STAThread] static int Main(string[] args) {
    if(args.Length>0 && args[0]=="--taskbar-guard")return DesktopTaskbar.RunGuard(args);
+   if(args.Length>0 && args[0]=="--render-preview")return PreviewRender.Run(args.Length>1?args[1]:System.IO.Path.Combine(System.IO.Path.GetTempPath(),"SyraPreview"));
    if (args.Contains("--self-test")) return SelfTest(args.Length > 1 ? args[1] : System.IO.Path.GetTempPath());
    bool first; using (var mutex = new Mutex(true, "Local\\JarvisDesk.V1", out first)) {
     if (!first) { if(DesktopCommands.Send(args)) return 0; MessageBox.Show(AssistantIdentity.CurrentName + " is already running."); return 0; }

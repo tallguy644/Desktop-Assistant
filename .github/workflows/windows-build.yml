@@ -5,6 +5,11 @@ on:
     branches: [main]
   pull_request:
   workflow_dispatch:
+    inputs:
+      publish_preview:
+        description: Also push the HUD preview images to the ci/hud-previews branch
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -17,6 +22,8 @@ jobs:
   build:
     name: Build, test and package
     runs-on: windows-latest
+    permissions:
+      contents: write
     timeout-minutes: 20
     defaults:
       run:
@@ -50,6 +57,40 @@ jobs:
             .\app\Test-Calendar.ps1 -Suite $suite
             Write-Host '::endgroup::'
           }
+
+      - name: Render HUD preview
+        run: |
+          $out = Join-Path $PWD 'dist\preview'
+          $p = Start-Process -FilePath (Resolve-Path 'app\Skynet.exe') -ArgumentList '--render-preview', "`"$out`"" -PassThru
+          if (!$p.WaitForExit(120000)) { $p.Kill(); throw 'HUD preview timed out.' }
+          if (Test-Path "$out\render-error.txt") { Get-Content "$out\render-error.txt" }
+          if ($p.ExitCode -ne 0) { throw "HUD preview failed with exit code $($p.ExitCode)." }
+          Get-ChildItem $out
+
+      - name: Upload HUD preview
+        uses: actions/upload-artifact@v4
+        with:
+          name: syra-hud-preview-${{ github.sha }}
+          path: dist/preview/*.png
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Publish HUD preview to branch
+        if: github.event_name == 'workflow_dispatch' && inputs.publish_preview
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $src = Join-Path $PWD 'dist\preview'
+          $work = Join-Path $env:RUNNER_TEMP 'hud-previews'
+          New-Item -ItemType Directory -Path $work -Force | Out-Null
+          Copy-Item "$src\*.png" $work
+          Set-Content (Join-Path $work 'SOURCE.txt') "${{ github.ref_name }} ${{ github.sha }}"
+          Push-Location $work
+          git init -q -b ci/hud-previews
+          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' add -A
+          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -q -m "HUD preview for ${{ github.sha }}"
+          git push -q -f "https://x-access-token:$env:GH_TOKEN@github.com/${{ github.repository }}.git" ci/hud-previews
+          Pop-Location
 
       - name: Build unsigned MSIX preview
         run: |
