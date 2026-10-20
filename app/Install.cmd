@@ -2,5 +2,5 @@
 setlocal
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%~dp0Setup.ps1"
 if errorlevel 1 (echo Installation failed. & pause & exit /b 1)
-echo Installation complete. Open Desktop Assistant from your Desktop.
+echo Installation complete. Open Syra from your Desktop.
 pause

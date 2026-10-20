@@ -19,8 +19,8 @@ using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using System.Windows.Threading;
 
-[assembly: System.Reflection.AssemblyTitle("Desktop Assistant")]
-[assembly: System.Reflection.AssemblyProduct("Desktop Assistant")]
+[assembly: System.Reflection.AssemblyTitle("Syra")]
+[assembly: System.Reflection.AssemblyProduct("Syra")]
 [assembly: System.Reflection.AssemblyDescription("Customizable desktop voice assistant")]
 
 namespace JarvisDesk {

@@ -1,4 +1,4 @@
-# Desktop Assistant privacy notice
+# Syra privacy notice
 
 Effective October 20, 2026. This notice describes the current desktop prototype. Publisher/support: [tallguy644 on GitHub](https://github.com/tallguy644/Desktop-Assistant/issues). Do not post credentials or private logs in public issues.
 

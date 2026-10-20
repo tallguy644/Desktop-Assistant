@@ -62,7 +62,7 @@ namespace JarvisDesk {
    if(args.Contains("--desktop")) {desktopPreferences.Enabled=true;if(String.IsNullOrEmpty(desktopPreferences.Monitor))desktopPreferences.Monitor=DesktopNative.CurrentMonitor(new WindowInteropHelper(this).Handle);desktopPreferences.Save(DesktopSettingsPath);}
    if(args.Contains("--window")) {desktopPreferences.Enabled=false;desktopPreferences.Save(DesktopSettingsPath);}
    desktopSignals=new[]{DesktopCommands.Open(0,dataDir),DesktopCommands.Open(1,dataDir),DesktopCommands.Open(2,dataDir)};
-   desktopTray=new System.Windows.Forms.NotifyIcon {Text="Desktop Assistant / desktop controls"};
+   desktopTray=new System.Windows.Forms.NotifyIcon {Text="Syra / desktop controls"};
    string icon=Path.Combine(AppDomain.CurrentDomain.BaseDirectory,"Skynet.ico");
    if(File.Exists(icon)) {desktopTrayIcon=new System.Drawing.Icon(icon);desktopTray.Icon=desktopTrayIcon;}else desktopTray.Icon=System.Drawing.SystemIcons.Application;
    var menu=new System.Windows.Forms.ContextMenuStrip();

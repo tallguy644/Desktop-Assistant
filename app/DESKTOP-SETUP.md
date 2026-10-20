@@ -4,9 +4,9 @@ This mode runs the same assistant as an interactive desktop on one monitor. It c
 
 ## Install and start
 
-1. Run **Desktop-Assistant-Setup.exe**, choose your monitor, and leave **Interactive desktop** selected. **Start with Windows** is optional.
+1. Run **Syra-Setup.exe**, choose your monitor, and leave **Interactive desktop** selected. **Start with Windows** is optional.
 2. Alternatively, extract the ZIP and run **Install-Desktop.cmd**. Close an existing assistant first. This installs for your Windows account without an administrator password.
-3. The **Desktop Assistant Background** shortcut enters desktop mode. **Desktop Assistant** restores your saved desktop/window choice. Use the tray menu or Ctrl+Alt+D to choose window mode. Opening either shortcut while the app is already running switches the existing instance rather than starting a duplicate.
+3. The **Syra Background** shortcut enters desktop mode. **Syra** restores your saved desktop/window choice. Use the tray menu or Ctrl+Alt+D to choose window mode. Opening either shortcut while the app is already running switches the existing instance rather than starting a duplicate.
 4. Right-click the reactor icon in the Windows notification area and select **Desktop settings / monitor** to change screens, enable or disable desktop mode, or choose **Start with Windows**. The tray icon may be under the hidden-icons arrow.
 
 ## Use and return to window mode

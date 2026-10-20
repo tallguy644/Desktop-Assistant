@@ -92,7 +92,7 @@ namespace JarvisDesk {
      // A shell-owned top-level popup gets its own compositor surface. Embedding WPF as a
      // WS_CHILD of Progman can produce a fully clipped black surface on Windows 11.
      // HWND_BOTTOM keeps this interactive HUD behind ordinary application windows.
-     var settings=new HwndSourceParameters("Desktop Assistant / interactive surface") {ParentWindow=host,WindowStyle=unchecked((int)(0x80000000|0x02000000|0x04000000)),ExtendedWindowStyle=0x80,PositionX=area.Left,PositionY=area.Top,Width=area.Width,Height=area.Height};
+     var settings=new HwndSourceParameters("Syra / interactive surface") {ParentWindow=host,WindowStyle=unchecked((int)(0x80000000|0x02000000|0x04000000)),ExtendedWindowStyle=0x80,PositionX=area.Left,PositionY=area.Top,Width=area.Width,Height=area.Height};
      source=new HwndSource(settings);
      // Opt out of Explorer's fullscreen detection before the surface is shown.
      // Otherwise a full-monitor HUD can cause Explorer to lower its taskbar.
