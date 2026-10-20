@@ -33,7 +33,7 @@ Startup is declared as a disabled-by-default packaged startup task. In the packa
 - Test missing sensors, localhost feed timeout, fan labeling and thermal-alert cooldown. Do not advertise universal hardware monitoring or replace hardware thermal protection.
 - Verify ChatGPT dynamic app registration / account eligibility and provider authorization for distributing this integration. Do not market universal ChatGPT plan access until verified. Document any reviewer account requirements privately in certification notes; never include your own tokens. Verify Azure Speech and Maps integration requirements as well.
 - Choose original-code license/distribution terms. Review the included third-party notices and final artwork rights. Replace remaining historical internal branding if required for the final product listing.
-- Review the privacy notice against final behavior and verify **COLORS / SETUP > PC SETUP > PRIVACY** in the signed package. Publish the notice and provide a support contact. Decide pricing, markets, age ratings and accurate data disclosures in Partner Center.
+- Review the privacy notice against final behavior and verify **SETUP > Privacy** in the signed package. Publish the notice and provide a support contact. Decide pricing, markets, age ratings and accurate data disclosures in Partner Center.
 - Capture fresh screenshots from the **signed package** on a clean demo profile. Include HUD, colors/setup and conversation views. Use synthetic agenda/chat/sensor data, label examples where needed, and exclude private locations or real account information. Screenshot assets are still pending; historical development screenshots are intentionally omitted.
 
 ## 4. Submit
