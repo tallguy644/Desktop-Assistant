@@ -1,6 +1,6 @@
 # Syra
 
-A customizable Windows desktop HUD with an animated reactor, voice app launching, spoken responses, system sensors, daily agenda, and optional AI chat.
+A customizable Windows desktop HUD with a glowing voice orb and live waveform, glass dashboard cards, voice app launching, spoken responses, system sensors, daily agenda, and optional AI chat.
 
 **Status: working desktop prototype; Microsoft Store submission preparation.** The preview MSIX uses a development identity and is unsigned. It is not an approved Store app.
 
@@ -26,7 +26,7 @@ Tests: run `app\Skynet.exe --self-test <empty-test-folder>`; run `app\Test-Chat.
 
 ## Features and limits
 
-- Animated, configurable HUD colors; movable window or interactive desktop on one monitor.
+- Holographic HUD: voice orb with waveform, honeycomb backdrop, glass cards and feature tiles, in configurable colors; movable window or interactive desktop on one monitor.
 - Whitelisted app launches, optional wake phrase, push-to-talk, original synthetic voices. No actor voice is supplied or claimed.
 - CPU/RAM usage; optional CPU/GPU/board temperatures in Fahrenheit, GPU load and fan RPM. Spoken thermal alerts are configurable and supplement your hardware's own protections.
 - Private read-only calendar link, agenda and Next Up; optional Google Maps commute view. Sensor labels cannot identify radiator fan wiring automatically.

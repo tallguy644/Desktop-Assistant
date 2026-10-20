@@ -2,7 +2,7 @@
 
 ## First connection
 
-1. Open Assistant. The permanent **ASSISTANT / CONVERSATION** area is beside the reactor. Expand **ACCOUNT / MODEL** if its connection controls are collapsed. **CHATGPT / ASK ASSISTANT** on the left focuses the conversation input.
+1. Open Assistant. The permanent **ASSISTANT / CONVERSATION** area is beside the voice orb. Expand **ACCOUNT / MODEL** if its connection controls are collapsed. **CHATGPT / ASK ASSISTANT** on the left focuses the conversation input.
 2. Click **Continue with ChatGPT**. Assistant opens the official OpenAI sign-in page in your browser. Sign in there; do not enter a password, token, or API key into Assistant or this support chat.
 3. Choose the account/workspace you want to use, then approve Assistant and permission to use your ChatGPT plan. Availability depends on your account, workspace permissions, and plan-sharing allowance. OpenAI's current example uses a Plus or Pro account; not every account or workspace is guaranteed access.
 4. Return to Assistant. It verifies the account and loads the model choices returned for that account. Choose a model, type **Hello**, then click **SEND** or press **Enter**. **Shift+Enter** adds a line.

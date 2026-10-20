@@ -2,7 +2,7 @@
 
 Select **COLORS / SETUP** at the upper right of the HUD.
 
-- Pick the **HUD accent**, **reactor rings**, and **reactor core / accent rotors** separately.
+- Pick the **HUD accent**, **orb halo / waveform / orbits**, and **orb core** separately.
 - Use **PICK COLOR** for the Windows color picker, or enter a six-digit RGB hex color such as `#66CCFF`.
 - Choose an Original, Purple, Green, or Amber preset as a starting point.
 - **PREVIEW** changes the live HUD. **SAVE COLORS** keeps the choices for this Windows account. **CANCEL** or closing the dialog restores the saved colors.
