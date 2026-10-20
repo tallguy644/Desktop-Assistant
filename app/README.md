@@ -1,4 +1,4 @@
-# Desktop Assistant
+# Syra
 
 A customizable Windows desktop HUD with an animated reactor, voice app launching, spoken responses, system sensors, daily agenda, and optional AI chat.
 
@@ -19,6 +19,8 @@ See [PC setup](app/PC-SETUP.md), [desktop controls](app/DESKTOP-SETUP.md), [voic
 ## Build
 
 On Windows, run `app\Build.cmd` to compile with the .NET Framework compiler. Dependencies and their license texts are included. `scripts\Build-Release.ps1` builds the standalone setup and portable ZIP in `dist`. `store\Build-Msix.ps1 -DevelopmentPreview -MakeAppxPath <path-to-makeappx.exe>` builds the unsigned Store preview. See [Store setup](store/SUBMISSION.md) for the SDK tools and final identity requirements.
+
+The **Windows build** GitHub Actions workflow runs the build, self-test, test suites and packaging on every push and pull request; the installer, ZIP and MSIX preview are attached to each run as artifacts.
 
 Tests: run `app\Skynet.exe --self-test <empty-test-folder>`; run `app\Test-Chat.ps1` and `app\Test-Calendar.ps1` with Windows PowerShell. These test fixtures use synthetic data. Native display/taskbar, packaged activation, and actual microphone/sensor behavior must also be tested on target PCs.
 

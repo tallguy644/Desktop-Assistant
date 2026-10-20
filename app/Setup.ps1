@@ -1,12 +1,15 @@
 param([switch]$Uninstall)
 $ErrorActionPreference = 'Stop'
 $installRoot = Join-Path $env:LOCALAPPDATA 'JarvisDesk\bin'
-$desktopLink = Join-Path ([Environment]::GetFolderPath('Desktop')) 'Desktop Assistant.lnk'
-$startLink = Join-Path ([Environment]::GetFolderPath('Programs')) 'Desktop Assistant.lnk'
-$backgroundLinks=@((Join-Path ([Environment]::GetFolderPath('Desktop')) 'Desktop Assistant Background.lnk'),(Join-Path ([Environment]::GetFolderPath('Programs')) 'Desktop Assistant Background.lnk'))
+$desktopLink = Join-Path ([Environment]::GetFolderPath('Desktop')) 'Syra.lnk'
+$startLink = Join-Path ([Environment]::GetFolderPath('Programs')) 'Syra.lnk'
+$backgroundLinks=@((Join-Path ([Environment]::GetFolderPath('Desktop')) 'Syra Background.lnk'),(Join-Path ([Environment]::GetFolderPath('Programs')) 'Syra Background.lnk'))
+$legacyLinks=@(foreach($folder in @([Environment]::GetFolderPath('Desktop'),[Environment]::GetFolderPath('Programs'))){foreach($name in @('Desktop Assistant.lnk','Desktop Assistant Background.lnk')){Join-Path $folder $name}})
 if (Get-Process -Name JarvisDesk,Skynet -ErrorAction SilentlyContinue) { throw 'Close the assistant before installing or uninstalling.' }
 if ($Uninstall) {
     foreach ($link in @($desktopLink, $startLink)+$backgroundLinks) { if (Test-Path -LiteralPath $link) { Remove-Item -LiteralPath $link } }
+    $shell = New-Object -ComObject WScript.Shell
+    foreach ($link in $legacyLinks) { if ((Test-Path -LiteralPath $link) -and $shell.CreateShortcut($link).TargetPath -eq (Join-Path $installRoot 'Skynet.exe')) { Remove-Item -LiteralPath $link } }
     $runPath='HKCU:\Software\Microsoft\Windows\CurrentVersion\Run'
     $startupValue=(Get-ItemProperty -LiteralPath $runPath -Name DesktopAssistant -ErrorAction SilentlyContinue).DesktopAssistant
     if($startupValue -eq ('"'+(Join-Path $installRoot 'Skynet.exe')+'"')) {Remove-ItemProperty -LiteralPath $runPath -Name DesktopAssistant -ErrorAction SilentlyContinue}
@@ -52,7 +55,7 @@ foreach($link in $backgroundLinks) {
 # Retain the original settings location and encryption identity during the rename.
 # Remove only the previous shortcuts that target this same installation.
 $oldExecutable = Join-Path $installRoot 'JarvisDesk.exe'
-foreach ($oldShortcutPath in @((Join-Path ([Environment]::GetFolderPath('Desktop')) 'JARVIS Desk.lnk'), (Join-Path ([Environment]::GetFolderPath('Programs')) 'JARVIS Desk.lnk'), (Join-Path ([Environment]::GetFolderPath('Desktop')) 'Skynet.lnk'), (Join-Path ([Environment]::GetFolderPath('Programs')) 'Skynet.lnk'))) {
+foreach ($oldShortcutPath in @((Join-Path ([Environment]::GetFolderPath('Desktop')) 'JARVIS Desk.lnk'), (Join-Path ([Environment]::GetFolderPath('Programs')) 'JARVIS Desk.lnk'), (Join-Path ([Environment]::GetFolderPath('Desktop')) 'Skynet.lnk'), (Join-Path ([Environment]::GetFolderPath('Programs')) 'Skynet.lnk'))+$legacyLinks) {
     if (Test-Path -LiteralPath $oldShortcutPath) {
         $oldShortcut = $shell.CreateShortcut($oldShortcutPath)
         if ($oldShortcut.TargetPath -eq $oldExecutable -or $oldShortcut.TargetPath -eq (Join-Path $installRoot 'Skynet.exe')) { Remove-Item -LiteralPath $oldShortcutPath }
@@ -62,7 +65,7 @@ foreach ($oldBinary in @('JarvisDesk.exe', 'JarvisDesk.ico')) {
     $oldBinaryPath = Join-Path $installRoot $oldBinary
     if (Test-Path -LiteralPath $oldBinaryPath) { Remove-Item -LiteralPath $oldBinaryPath }
 }
-Write-Host 'Desktop Assistant installed. Your app mappings and voice settings have been kept.'
+Write-Host 'Syra installed. Your app mappings and voice settings have been kept.'
 
 
 

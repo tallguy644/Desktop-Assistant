@@ -1,11 +1,11 @@
 param(
  [string]$IdentityName,[string]$Publisher,[string]$PublisherDisplayName,
- [string]$DisplayName='Desktop Assistant',[string]$Version='1.0.0.0',
+ [string]$DisplayName='Syra',[string]$Version='1.0.0.0',
  [string]$MakeAppxPath,[switch]$DevelopmentPreview
 )
 $ErrorActionPreference='Stop'
 $root=Split-Path $PSScriptRoot
-if($DevelopmentPreview){$IdentityName='DesktopAssistant.DevelopmentPreview';$Publisher='CN=DesktopAssistant-Development';$PublisherDisplayName='Development preview';$DisplayName='Desktop Assistant Preview'}
+if($DevelopmentPreview){$IdentityName='DesktopAssistant.DevelopmentPreview';$Publisher='CN=DesktopAssistant-Development';$PublisherDisplayName='Development preview';$DisplayName='Syra Preview'}
 if(!$IdentityName -or !$Publisher -or !$PublisherDisplayName){throw 'Supply the exact Identity Name, Publisher and PublisherDisplayName from Partner Center, or explicitly select -DevelopmentPreview.'}
 if($Version -notmatch '^\d+\.\d+\.\d+\.0$'){throw 'Use a four-part Store version ending in .0, such as 1.0.0.0.'}
 if(!$MakeAppxPath){$tool=Get-Command makeappx.exe -ErrorAction SilentlyContinue;if($tool){$MakeAppxPath=$tool.Source}}
@@ -24,7 +24,7 @@ try {foreach($entry in @(@('StoreLogo',50),@('Square44x44Logo',44),@('Square150x
 $manifest=Get-Content -LiteralPath (Join-Path $PSScriptRoot 'Package.appxmanifest.template') -Raw
 foreach($name in @('IdentityName','Publisher','PublisherDisplayName','DisplayName','Version')){$manifest=$manifest.Replace('{{'+$name+'}}',[Security.SecurityElement]::Escape((Get-Variable -Name $name -ValueOnly)))}
 [IO.File]::WriteAllText((Join-Path $payload 'AppxManifest.xml'),$manifest,[Text.UTF8Encoding]::new($false))
-$fileName=if($DevelopmentPreview){'Desktop-Assistant-PREVIEW-unsigned.msix'}else{'Desktop-Assistant-'+$Version+'-x64-unsigned.msix'}
+$fileName=if($DevelopmentPreview){'Syra-PREVIEW-unsigned.msix'}else{'Syra-'+$Version+'-x64-unsigned.msix'}
 $output=Join-Path $dist $fileName
 & $MakeAppxPath pack /d $payload /p $output /o
 if($LASTEXITCODE -ne 0){throw 'MakeAppx failed validation or packaging.'}

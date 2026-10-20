@@ -1,0 +1,76 @@
+name: Windows build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: windows-build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build, test and package
+    runs-on: windows-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        # Windows PowerShell 5.1, the same shell the build and test scripts target.
+        shell: powershell
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build app, installer and portable ZIP
+        run: .\scripts\Build-Release.ps1
+
+      - name: Self-test
+        run: |
+          $dir = Join-Path $env:RUNNER_TEMP 'syra-selftest'
+          New-Item -ItemType Directory -Path $dir -Force | Out-Null
+          $p = Start-Process -FilePath (Resolve-Path 'app\Skynet.exe') -ArgumentList '--self-test', "`"$dir`"" -Wait -PassThru
+          $report = Join-Path $dir 'Skynet-selftest.txt'
+          if (Test-Path -LiteralPath $report) { Get-Content -LiteralPath $report } else { Write-Host 'No self-test report was written.' }
+          if ($p.ExitCode -ne 0) { throw "Self-test failed with exit code $($p.ExitCode)." }
+
+      - name: Chat tests
+        run: .\app\Test-Chat.ps1
+
+      - name: Feature test suites
+        run: |
+          foreach ($suite in 'Calendar','TemperatureAlerts','Commute','Browser','NextUp','Screens','Identity','ChatNaming') {
+            Write-Host "::group::$suite"
+            .\app\Test-Calendar.ps1 -Suite $suite
+            Write-Host '::endgroup::'
+          }
+
+      - name: Build unsigned MSIX preview
+        run: |
+          $makeappx = Get-ChildItem "${env:ProgramFiles(x86)}\Windows Kits\10\bin\*\x64\makeappx.exe" -ErrorAction SilentlyContinue |
+            Sort-Object { [version]$_.Directory.Parent.Name } -Descending | Select-Object -First 1
+          if (!$makeappx) { throw 'makeappx.exe was not found in the Windows SDK on this runner.' }
+          .\store\Build-Msix.ps1 -DevelopmentPreview -MakeAppxPath $makeappx.FullName
+
+      - name: Checksums
+        run: |
+          Get-ChildItem dist -File | Where-Object { $_.Extension -in '.exe','.zip','.msix' } |
+            Get-FileHash -Algorithm SHA256 | ForEach-Object { "$($_.Hash.ToLower())  $(Split-Path $_.Path -Leaf)" } |
+            Set-Content dist\SHA256SUMS.txt
+          Get-Content dist\SHA256SUMS.txt
+
+      - name: Upload packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: syra-windows-${{ github.sha }}
+          path: |
+            dist/*.exe
+            dist/*.zip
+            dist/*.msix
+            dist/PACKAGE-STATUS.txt
+            dist/SHA256SUMS.txt
+          if-no-files-found: error
+          retention-days: 30

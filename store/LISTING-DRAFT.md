@@ -1,12 +1,12 @@
 # Store listing draft — review before submission
 
-**Working name:** Desktop Assistant (reserve an available name first)
+**Working name:** Syra (reserve an available name first)
 
 **Short description:** Your customizable voice desktop, daily agenda and system HUD.
 
 **Description:**
 
-Make your Windows desktop feel like a personal command center. Desktop Assistant combines a layered animated reactor with customizable colors, safe voice shortcuts to your applications, a daily agenda and optional hardware monitoring. Use a movable window or an interactive desktop on one chosen monitor.
+Make your Windows desktop feel like a personal command center. Syra combines a layered animated reactor with customizable colors, safe voice shortcuts to your applications, a daily agenda and optional hardware monitoring. Use a movable window or an interactive desktop on one chosen monitor.
 
 Speak a mapped app name or use push-to-talk. Add a private read-only calendar feed for your agenda and Next Up. Connect compatible local hardware monitoring to display temperatures, GPU load and fan readings, and configure spoken temperature alerts. Optional online voice and AI chat connections use your own eligible provider accounts.
 

@@ -27,7 +27,7 @@ class DesktopInstaller : Form {
  [STAThread] static void Main(){Application.EnableVisualStyles();Application.SetCompatibleTextRenderingDefault(false);Application.Run(new DesktopInstaller());}
  class ScreenItem {public Screen Screen;public override string ToString(){return Screen.DeviceName+(Screen.Primary?" / primary monitor":" / secondary monitor");}}
  DesktopInstaller(){
-  Text="Desktop Assistant Setup";ClientSize=new Size(590,420);FormBorderStyle=FormBorderStyle.FixedDialog;MaximizeBox=false;StartPosition=FormStartPosition.CenterScreen;Font=new Font("Segoe UI",10);
+  Text="Syra Setup";ClientSize=new Size(590,420);FormBorderStyle=FormBorderStyle.FixedDialog;MaximizeBox=false;StartPosition=FormStartPosition.CenterScreen;Font=new Font("Segoe UI",10);
   var panel=new FlowLayoutPanel {Dock=DockStyle.Fill,Padding=new Padding(26),FlowDirection=FlowDirection.TopDown,WrapContents=false};Controls.Add(panel);
   panel.Controls.Add(new Label {Text="Your interactive desktop",Font=new Font("Segoe UI",21,FontStyle.Bold),AutoSize=true,Margin=new Padding(0,0,0,12)});
   panel.Controls.Add(new Label {Text="Voice commands, chat, agenda and system sensors in one desktop HUD.\nInstalls for your Windows account; existing settings are kept.",AutoSize=true,Margin=new Padding(0,0,0,16)});

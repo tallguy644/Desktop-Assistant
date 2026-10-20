@@ -2,7 +2,7 @@
 
 This is a Windows desktop application. The package targets **Windows 10/11 x64** with **.NET Framework 4.8 or newer**. Windows 11 is recommended. The app has been tested on the development Windows 11 PC; it is not certified for every PC or hardware configuration. macOS, Linux, 32-bit Windows and Windows on ARM are not supported builds of this package.
 
-1. Copy **Desktop-Assistant-Setup.exe** to the other PC and run it. The installer is unsigned, so Windows may show a publisher/SmartScreen prompt. Alternatively, extract **Desktop-Assistant-Windows.zip** and run `Skynet\Install.cmd`.
+1. Copy **Syra-Setup.exe** to the other PC and run it. The installer is unsigned, so Windows may show a publisher/SmartScreen prompt. Alternatively, extract **Syra-Windows.zip** and run `Skynet\Install.cmd`.
 2. Choose one of that PC's detected monitors. Leave Interactive desktop selected for background mode, or use normal window mode. Windows startup is optional.
 3. The app discovers local Start-menu shortcuts and common Windows applications. Open **APP MAPPINGS** to review trusted executable/shortcut paths and add missing apps. App paths are discovered on each PC rather than copied from the development computer.
 4. Open **COLORS / SETUP** to choose any RGB colors for the HUD, rings and core. Select **PC SETUP** for local readiness information.

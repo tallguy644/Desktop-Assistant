@@ -6,7 +6,7 @@ Source, bundled dependency licenses, standalone setup recipe, privacy notice, or
 
 ## 1. Create the account and reserve the name
 
-Sign in to [Microsoft Partner Center](https://partner.microsoft.com/dashboard), enroll as a Windows app developer, and complete the current identity/business verification requirements shown there. Reserve your available product name. “Desktop Assistant” is a working title; availability is not guaranteed.
+Sign in to [Microsoft Partner Center](https://partner.microsoft.com/dashboard), enroll as a Windows app developer, and complete the current identity/business verification requirements shown there. Reserve your available product name. “Syra” is a working title; availability is not guaranteed.
 
 Open the product's **Product management > Product identity** and copy the exact Package/Identity/Name, Package/Identity/Publisher and Package/Properties/PublisherDisplayName. Enter those values locally when building. They are not passwords. Do not share signing keys, passwords or access tokens.
 
