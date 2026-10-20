@@ -160,11 +160,11 @@ namespace JarvisDesk {
    if(chatBusy || speaking || questionListening) { chatStatus.Text="Wait for the current reply, or use STOP SPEAKING first."; return; }
    OpenChatPanel(); if(chatBusy || !chatClient.Connected || !(chatModels.SelectedItem is ChatModel)) { chatStatus.Text="Connect with ChatGPT and select a model before using voice questions."; return; }
    if(recognizer==null) { chatStatus.Text="Windows English dictation is unavailable. Type your question instead."; return; }
-   resumeLaunchListening=continuous; continuous=false; pttUntil=DateTime.MinValue; questionListening=true; questionUntil=DateTime.UtcNow.AddSeconds(15); listenButton.Content="LISTEN";
+   resumeLaunchListening=continuous; continuous=false; pttUntil=DateTime.MinValue; questionListening=true; questionUntil=DateTime.UtcNow.AddSeconds(15); SetListenLabel("LISTEN");
    chatStatus.Text="Listening for one question. It will be sent to ChatGPT when recognized."; SetState("ASK " + ChatDisplayUpper,"Speak your question. Up to 15 seconds."); UpdateChatAccount(); UpdateGrammar();
   }
   void EndQuestionDictation() {
-   questionListening=false; questionUntil=DateTime.MinValue; continuous=resumeLaunchListening; resumeLaunchListening=false; listenButton.Content=continuous?"STOP LISTENING":"LISTEN"; UpdateGrammar(); UpdateChatAccount(); SetState(continuous?"LISTENING":"STANDBY","Question microphone closed.");
+   questionListening=false; questionUntil=DateTime.MinValue; continuous=resumeLaunchListening; resumeLaunchListening=false; SetListenLabel(continuous?"STOP LISTENING":"LISTEN"); UpdateGrammar(); UpdateChatAccount(); SetState(continuous?"LISTENING":"STANDBY","Question microphone closed.");
   }
   void OnQuestionRecognized(string text, float confidence) {
    if(screenPreferences.Enabled && !WindowsScreenPower.Unlocked) { if(questionListening) EndQuestionDictation();return; }

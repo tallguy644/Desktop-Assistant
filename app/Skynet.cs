@@ -89,7 +89,7 @@ namespace JarvisDesk {
    Loaded+=delegate{FitStartupWindow();};
    BuildUI(); LoadMaps(); RefreshList(); InitVoice(); InitializeChat(); InitializeCalendar(); InitializeTemperatureAlerts(); InitializeCommute(); InitializeScreenControl();
    timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(250) };
-   timer.Tick += delegate { UpdateReferenceClock(); CheckQuestionTimeout(); CheckCalendar(); CheckThermalAlerts(); CheckCommuteReminders(); UpdateNextUp(); CheckAgendaNarration(); CheckScreenControl();
+   timer.Tick += delegate { UpdateReferenceClock(); RefreshWave(); CheckQuestionTimeout(); CheckCalendar(); CheckThermalAlerts(); CheckCommuteReminders(); UpdateNextUp(); CheckAgendaNarration(); CheckScreenControl();
     if (!continuous && pttUntil != DateTime.MinValue && DateTime.UtcNow > pttUntil) { pttUntil = DateTime.MinValue; StopRecognition(); SetState("STANDBY", "Push-to-talk window ended. Ready when you are."); }
     if (telemetryBusy && (DateTime.UtcNow - telemetryStarted).TotalSeconds > 12) ShowSystem(new SystemSnapshot { Status = "Sensor query timed out. Readings unavailable until the feed recovers." });
     if (!telemetryBusy && (DateTime.UtcNow - lastTelemetry).TotalSeconds >= 3) RefreshSystem();
@@ -231,9 +231,9 @@ namespace JarvisDesk {
     };
     recognizer.RecognizeCompleted += delegate(object sender, RecognizeCompletedEventArgs e) { if (!closing) Dispatcher.BeginInvoke(new Action(delegate {
      running = false; stopping = false;
-     if (e.Error != null) { if(questionListening) grammarDirty=true; questionListening=false; resumeLaunchListening=false; questionUntil=DateTime.MinValue; if(chatStatus!=null) chatStatus.Text="Microphone stopped. Try again or type your question."; continuous = false; pttUntil = DateTime.MinValue; listenButton.Content = "LISTEN"; SetState("MIC ERROR", e.Error.Message); Log(e.Error.Message); if(chatClient!=null) UpdateChatAccount(); }
+     if (e.Error != null) { if(questionListening) grammarDirty=true; questionListening=false; resumeLaunchListening=false; questionUntil=DateTime.MinValue; if(chatStatus!=null) chatStatus.Text="Microphone stopped. Try again or type your question."; continuous = false; pttUntil = DateTime.MinValue; SetListenLabel("LISTEN"); SetState("MIC ERROR", e.Error.Message); Log(e.Error.Message); if(chatClient!=null) UpdateChatAccount(); }
      try { if (grammarDirty) UpdateGrammar(); else if (continuous || questionListening || DateTime.UtcNow < pttUntil) StartRecognition(); }
-     catch (Exception ex) { continuous = false; pttUntil = DateTime.MinValue; listenButton.Content = "LISTEN"; SetState("VOICE ERROR", ex.Message); Log(ex.Message); }
+     catch (Exception ex) { continuous = false; pttUntil = DateTime.MinValue; SetListenLabel("LISTEN"); SetState("VOICE ERROR", ex.Message); Log(ex.Message); }
     })); };
     UpdateGrammar(); UpdateVoiceLabel(); Log("Ready. Listening is off. Choose LISTEN or PUSH TO TALK.");
    } catch (Exception ex) { Log("Recognition unavailable: " + ex.Message); if (recognizer != null) recognizer.Dispose(); recognizer = null; }
@@ -263,8 +263,8 @@ namespace JarvisDesk {
   void StopRecognition() { if (recognizer != null && running && !stopping) { stopping = true; recognizer.RecognizeAsyncCancel(); } }
   void ToggleListen() {
    if(questionListening) EndQuestionDictation();
-   if (continuous) { continuous = false; pttUntil = DateTime.MinValue; StopRecognition(); listenButton.Content = "LISTEN"; SetState("STANDBY", "Microphone listening is off."); }
-   else if (StartRecognition()) { continuous = true; listenButton.Content = "STOP LISTENING"; SetState("LISTENING","Say “open” and an app name, “wake up,” or “screens off.”"); }
+   if (continuous) { continuous = false; pttUntil = DateTime.MinValue; StopRecognition(); SetListenLabel("LISTEN"); SetState("STANDBY", "Microphone listening is off."); }
+   else if (StartRecognition()) { continuous = true; SetListenLabel("STOP LISTENING"); SetState("LISTENING","Say “open” and an app name, “wake up,” or “screens off.”"); }
    RefreshScreenControl();
   }
   void PushToTalk() { if(questionListening) EndQuestionDictation(); if (StartRecognition()) { pttUntil = DateTime.UtcNow.AddSeconds(8); SetState("SPEAK NOW", "Eight seconds · say “open” and a saved app name."); } }
@@ -305,6 +305,7 @@ namespace JarvisDesk {
  static class Program {
   [STAThread] static int Main(string[] args) {
    if(args.Length>0 && args[0]=="--taskbar-guard")return DesktopTaskbar.RunGuard(args);
+   if(args.Length>0 && args[0]=="--render-preview")return PreviewRender.Run(args.Length>1?args[1]:System.IO.Path.Combine(System.IO.Path.GetTempPath(),"SyraPreview"));
    if (args.Contains("--self-test")) return SelfTest(args.Length > 1 ? args[1] : System.IO.Path.GetTempPath());
    bool first; using (var mutex = new Mutex(true, "Local\\JarvisDesk.V1", out first)) {
     if (!first) { if(DesktopCommands.Send(args)) return 0; MessageBox.Show(AssistantIdentity.CurrentName + " is already running."); return 0; }
