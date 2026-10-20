@@ -1,0 +1,15 @@
+# Spoken CPU and GPU temperature alerts
+
+Spoken alerts start enabled with your chosen limits: **CPU above 175°F** and **GPU above 175°F**. Exactly 175°F does not trigger an alert. These are your notification thresholds, not manufacturer-specific maximum temperatures.
+
+Open **TEMP ALERTS** beneath the CPU/GPU readings to change either limit, enable/disable speech alerts, or change the repeat interval. Click **SAVE** to retain changes, **CANCEL** to leave them unchanged, and **TEST** to hear a test warning through your saved voice and sound output. Limits accept whole numbers from 100–250°F; the repeat interval accepts 1–60 minutes. Settings are saved in `%LOCALAPPDATA%\JarvisDesk\temperature-alerts.json`.
+
+Assistant requires **two consecutive fresh high readings** before warning. Readings normally arrive about three seconds apart. A brief isolated spike does not speak. CPU and GPU warnings share one phrase when both are due. Their cooldowns are independent; each can repeat at most once every **five minutes** by default while fresh readings still confirm heat. Two readings at least 9°F below the limit clear the latched incident; the repeat cooldown still prevents rapid repeated warnings after cooling and reheating.
+
+High readings turn orange-red in the HUD. The badge shows **CPU HIGH**, **GPU HIGH**, **BOTH HIGH**, **ON**, **PARTIAL**, **NO FEED**, or **OFF**. Hover it for the configured limits. Stale, invalid, and missing readings cannot trigger a temperature warning. The warning compares unrounded sensor values using the same preferred CPU package/core and GPU core selection as the main HUD. Hover those temperature readings to see their actual selected sensor labels, including a fallback such as GPU hotspot when no core sensor is available.
+
+Warnings use your saved voice, speed, and volume. When the selected online voice cannot play, temperature warnings allow the installed Windows fallback voice without changing your saved voice preference. They wait for current speech and voice-question listening to finish, then recheck that fresh readings still confirm the condition. A ChatGPT reply arriving during a temperature warning waits to be read afterward. **STOP VOICE** stops a current warning too; persistent heat may warn again after the cooldown. Windows volume, mute, and output-device settings still apply.
+
+Assistant must remain open, and Libre Hardware Monitor must keep supplying fresh supported readings. Alerts also work while Assistant is minimized. This feature reports temperatures; it does not adjust fans, shut down the PC, or operate after Assistant exits. Generic warning text may be sent to your configured Azure Speech service to synthesize the voice; numeric sensor values and calendar details are not included.
+
+Run `powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\Test-Calendar.ps1 -Suite TemperatureAlerts` for isolated tests of thresholds, cooldowns, spikes, sensor gaps, settings, and preferred sensor selection. These checks use synthetic readings and do not produce sound or heat your hardware.
