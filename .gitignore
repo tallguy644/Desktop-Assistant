@@ -1,0 +1,20 @@
+# Local build output and private user data
+dist/
+work/
+.vs/
+.store-tools/
+*.pfx
+*.p12
+*.key
+*.protected
+*.user
+*.log
+appearance.json
+desktop.json
+apps.json
+settings.json
+calendar.json
+commute.json
+chat-history*
+tokens*
+WebView2/
