@@ -13,6 +13,13 @@ appearance.json
 desktop.json
 apps.json
 settings.json
+voice.json
+screens.json
+personal-greeting.json
+chat-name.json
+*-status.json
+azure-voices-*.json
+maps-browser/
 calendar.json
 commute.json
 chat-history*
