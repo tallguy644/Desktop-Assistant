@@ -1,0 +1,5 @@
+DEVELOPMENT IDENTITY ONLY. Not a Store submission package.
+Unsigned: Store submission uses Microsoft signing; local installation requires a separately trusted test signature.
+Package: Desktop-Assistant-PREVIEW-unsigned.msix
+SHA256: 88DFFFD37DEC435DF50277BD48146B4E0741719BF98AEE7F89AFB03B553E1EE9
+Packaged installation / activation still require signed testing on a clean PC.
