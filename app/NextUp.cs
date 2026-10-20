@@ -52,10 +52,10 @@ namespace JarvisDesk {
   DateTime nextUpPaint;
   void CreateNextUpDial(Canvas stage) {
    nextUpDial=new Grid { Width=156,Height=156,ToolTip="Your next calendar event, with a live countdown." };
-   nextUpDial.Children.Add(Ring(153,Ink(0,47,57),1,null,0));
+   nextUpDial.Children.Add(Ring(153,RingInk(22,55,84),1,null,0));
    var ticks=new Canvas { Width=156,Height=156,IsHitTestVisible=false };
-   for(int i=0;i<36;i++) { var a=Polar(78,78,73,i*10);var b=Polar(78,78,i%3==0?69:71,i*10);Wire(ticks,a.X,a.Y,b.X,b.Y,Ink(0,100,112),i%3==0?1.2:0.7); }nextUpDial.Children.Add(ticks);
-   nextUpDial.Children.Add(Ring(134,Ink(0,53,63),5,null,0));
+   for(int i=0;i<36;i++) { var a=Polar(78,78,73,i*10);var b=Polar(78,78,i%3==0?69:71,i*10);Wire(ticks,a.X,a.Y,b.X,b.Y,RingInk(77,135,183),i%3==0?1.2:0.7); }nextUpDial.Children.Add(ticks);
+   nextUpDial.Children.Add(Ring(134,RingInk(30,65,96),5,null,0));
    nextUpArc=Arc(144,67,-90,-89.9,cyan,5);nextUpArc.HorizontalAlignment=HorizontalAlignment.Center;nextUpArc.VerticalAlignment=VerticalAlignment.Center;nextUpArc.Effect=new DropShadowEffect { Color=Colors.Cyan,BlurRadius=9,ShadowDepth=0,Opacity=0.6 };nextUpDial.Children.Add(nextUpArc);
    var text=new Canvas { Width=156,Height=156,IsHitTestVisible=false };
    nextUpCaption=NextUpLabel("NEXT UP",9);Place(text,nextUpCaption,22,32,112,14);

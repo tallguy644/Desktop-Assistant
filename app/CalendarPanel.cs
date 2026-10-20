@@ -28,17 +28,14 @@ namespace JarvisDesk {
    agendaDate=Label("",11,cyan); agendaDate.Margin=new Thickness(0,0,0,4); DockPanel.SetDock(agendaDate,Dock.Top); layout.Children.Add(agendaDate);
    var footer=new StackPanel(); agendaStatus=Label("CONNECT for your Google agenda",9,muted); agendaStatus.MinHeight=15; agendaStatus.MaxHeight=28; agendaStatus.Margin=new Thickness(0,3,0,3); agendaStatus.SetBinding(FrameworkElement.ToolTipProperty,new System.Windows.Data.Binding("Text") { Source=agendaStatus }); footer.Children.Add(agendaStatus);
    commuteSummary=Label("WORK / SET UP TRAVEL",9,muted); commuteSummary.MaxHeight=26; commuteSummary.Margin=new Thickness(0,1,0,2); footer.Children.Insert(0,commuteSummary);
-   var actions=new WrapPanel(); var read=CalendarControl("▷ READ",50,ReadAgenda); read.ToolTip="Read today's agenda using your saved voice"; actions.Children.Add(read); agendaManage=CalendarControl("CONNECT",60,ToggleCalendarSetup); actions.Children.Add(agendaManage); agendaRefresh=CalendarControl("↻",24,RefreshCalendar); agendaRefresh.ToolTip="Refresh Google Calendar"; actions.Children.Add(agendaRefresh); var work=CalendarControl("WORK",40,OpenCommutePanel); work.ToolTip="Work route, arrival buffer, and departure reminders"; actions.Children.Add(work); footer.Children.Add(actions); DockPanel.SetDock(footer,Dock.Bottom); layout.Children.Add(footer);
+   var actions=new WrapPanel(); var read=CalendarControl("▷ READ",46,ReadAgenda); read.ToolTip="Read today's agenda using your saved voice"; actions.Children.Add(read); agendaManage=CalendarControl("CONNECT",54,ToggleCalendarSetup); actions.Children.Add(agendaManage); agendaRefresh=CalendarControl("↻",22,RefreshCalendar); agendaRefresh.ToolTip="Refresh Google Calendar"; actions.Children.Add(agendaRefresh); var work=CalendarControl("WORK",36,OpenCommutePanel); work.ToolTip="Work route, arrival buffer, and departure reminders"; actions.Children.Add(work); footer.Children.Add(actions); DockPanel.SetDock(footer,Dock.Bottom); layout.Children.Add(footer);
    var content=new Grid(); agendaItems=new StackPanel(); agendaScroll=new ScrollViewer { Content=agendaItems, VerticalScrollBarVisibility=ScrollBarVisibility.Auto, HorizontalScrollBarVisibility=ScrollBarVisibility.Disabled }; content.Children.Add(agendaScroll);
    agendaSetup=new StackPanel { Visibility=Visibility.Collapsed };
    var help=Label("PRIVATE CALENDAR LINK",9,muted); help.Margin=new Thickness(0,0,0,5); agendaSetup.Children.Add(help);
    agendaLink=new PasswordBox { Height=25, MaxLength=2048, Background=Brushes.Transparent, Foreground=cyan, BorderBrush=Ink(0,103,115), BorderThickness=new Thickness(0,0,0,1), Padding=new Thickness(3), Margin=new Thickness(0,0,0,6), ToolTip="Private Google Calendar Secret address in iCal format. Stored encrypted on this PC." }; agendaSetup.Children.Add(agendaLink);
    var saveRow=new WrapPanel(); agendaSave=CalendarControl("SAVE",52,SaveCalendarLink); saveRow.Children.Add(agendaSave); saveRow.Children.Add(CalendarControl("CANCEL",60,CancelCalendarSetup)); saveRow.Children.Add(CalendarControl("HELP",52,OpenCalendarHelp)); agendaSetup.Children.Add(saveRow);
    agendaRemove=CalendarControl("REMOVE LINK",120,RemoveCalendarLink); agendaRemove.Margin=new Thickness(0,4,0,0); agendaSetup.Children.Add(agendaRemove); content.Children.Add(agendaSetup); layout.Children.Add(content);
-   var shell=new Grid { Width=208,Height=216 };
-   var accents=new Canvas { IsHitTestVisible=false }; Wire(accents,10,25,87,25,cyan,1.5); Wire(accents,87,25,99,19,Ink(0,110,118),1); Wire(accents,99,19,139,19,Ink(0,70,80),1); shell.Children.Add(accents);
-   var heading=Label("◈  TODAY / AGENDA",12,cyan); heading.Margin=new Thickness(10,0,0,0); heading.VerticalAlignment=VerticalAlignment.Top; shell.Children.Add(heading);
-   layout.Margin=new Thickness(10,28,8,0); shell.Children.Add(layout); Place(stage,shell,76,38,208,216);
+   Place(stage,ReferenceSection("TODAY / AGENDA",layout,208,240),76,102,208,240);
   }
   Button CalendarControl(string title,double width,Action action) {
    var button=CompactButton(title,action); button.Width=width; button.FontSize=9; button.Padding=new Thickness(0,4,0,4); button.Margin=new Thickness(0,0,3,0); button.IsEnabledChanged+=delegate { button.Opacity=button.IsEnabled?1:0.3; }; return button;
@@ -78,9 +75,9 @@ namespace JarvisDesk {
     agendaStatus.Text=(agendaOffline?"OFFLINE / saved ":"SYNCED / ")+updated+(agendaOffline?"":" · 5 min");
    }
   }
-  void ToggleCalendarSetup() { if(agendaSetup.Visibility==Visibility.Visible) CancelCalendarSetup(); else { agendaSetup.Visibility=Visibility.Visible; agendaScroll.Visibility=Visibility.Collapsed; agendaLink.Clear(); agendaLink.Focus(); agendaStatus.Text="Paste privately here; use HELP for steps."; } }
-  void CancelCalendarSetup() { if(agendaReplacing && agendaBusy) { agendaGeneration++; agendaOperation.Cancel(); agendaBusy=false; agendaReplacing=false; nextAgendaRefresh=DateTime.UtcNow.AddMinutes(5); } CloseCalendarSetup(); }
-  void CloseCalendarSetup() { agendaLink.Clear(); agendaSetup.Visibility=Visibility.Collapsed; agendaScroll.Visibility=Visibility.Visible; PaintAgenda(); }
+  void ToggleCalendarSetup() { OpenUnifiedSettings("calendar"); }
+  void CancelCalendarSetup() { if(agendaReplacing && agendaBusy) { agendaGeneration++; agendaOperation.Cancel(); agendaBusy=false; agendaReplacing=false; nextAgendaRefresh=DateTime.UtcNow.AddMinutes(5); } CloseCalendarSetup(); if(InSetup("calendar"))setupWindow.Close(); }
+  void CloseCalendarSetup() { agendaLink.Clear(); agendaSetup.Visibility=InSetup("calendar")?Visibility.Visible:Visibility.Collapsed; agendaScroll.Visibility=Visibility.Visible; PaintAgenda(); }
   void OpenCalendarHelp() { System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo { FileName="https://support.google.com/calendar/answer/37648?hl=en",UseShellExecute=true }); }
   void SaveCalendarLink() {
    if(agendaBusy) return;

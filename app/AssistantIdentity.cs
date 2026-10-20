@@ -45,6 +45,7 @@ namespace JarvisDesk {
   public bool NeedsNameSetup { get { return !File.Exists(PersonalGreetingPath); } }
   public string OnlineAnnouncement { get { return PersonalGreeting.Build(personalGreeting.Name,DateTime.Now); } }
   public void OpenNameSettings() {
+   if(!buildingSetupPage){OpenUnifiedSettings("greeting");return;}
    var dialog=new Window { Title="Your name / personal greeting",Owner=this,Width=560,Height=410,ResizeMode=ResizeMode.NoResize,WindowStartupLocation=WindowStartupLocation.CenterOwner,Background=Ink(3,13,20),Foreground=cyan };
    dialog.Resources.Add(typeof(Button),Resources[typeof(Button)]);
    var form=new StackPanel { Margin=new Thickness(24) };dialog.Content=form;
@@ -61,7 +62,7 @@ namespace JarvisDesk {
    buttons.Children.Add(Action("PREVIEW",delegate { try { SpeakText(PersonalGreeting.Build(input.Text,DateTime.Now)); } catch(Exception ex) { status.Text=ex.Message; } }));
    buttons.Children.Add(Action("CANCEL",dialog.Close));
    form.Children.Add(Label("Your name is saved on this PC. With an online voice, greeting text is sent to your voice provider when spoken.",10,muted));
-   dialog.Loaded+=delegate { input.Focus();input.SelectAll(); };dialog.ShowDialog();
+   form.Loaded+=delegate { input.Focus();input.SelectAll(); };PresentSetupDialog(dialog);
   }
  }
 }

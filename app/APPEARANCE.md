@@ -1,11 +1,11 @@
 # Colors and appearance
 
-Select **COLORS / SETUP** at the upper right of the HUD.
+Select **SETTINGS** at the upper right of the HUD, then **Appearance & colors**. All other app setup sections are in this same window.
 
 - Pick the **HUD accent**, **reactor rings**, and **reactor core / accent rotors** separately.
 - Use **PICK COLOR** for the Windows color picker, or enter a six-digit RGB hex color such as `#66CCFF`.
 - Choose an Original, Purple, Green, or Amber preset as a starting point.
-- **PREVIEW** changes the live HUD. **SAVE COLORS** keeps the choices for this Windows account. **CANCEL** or closing the dialog restores the saved colors.
+- **PREVIEW** changes the live HUD. **SAVE COLORS** keeps the choices for this Windows account. **CANCEL**, switching sections, or closing Settings restores any unsaved color preview.
 
 Animations, chat history, drafts and hardware readings continue while colors change. Very dark choices are brightened on the black HUD to keep text and details readable. Warning colors retain their warning meaning. The original scheme stays unchanged until you pick another one.
 

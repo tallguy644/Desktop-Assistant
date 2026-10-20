@@ -12,7 +12,6 @@ namespace JarvisDesk {
   ScreenIdleController screenController;
   WindowsScreenPower screenPower;
   Border screenDrawer;
-  Button screenSettingsLink;
   CheckBox screenEnabled;
   TextBox screenTimeout;
   TextBlock screenStatus,screenCommandHelp;
@@ -43,8 +42,9 @@ namespace JarvisDesk {
    Loaded+=delegate { if(screenPreferences.Enabled && recognizer!=null && !continuous) ToggleListen();RefreshScreenControl(); };
    Closing+=delegate { try { screenController.Stop();screenPower.End(); } catch { /* Recovery record is retained for the next launch. */ } WriteScreenStatus(); };
   }
-  void OpenScreenSettings() { screenEnabled.IsChecked=screenPreferences.Enabled;screenTimeout.Text=screenPreferences.TimeoutMinutes.ToString(CultureInfo.InvariantCulture);screenStatus.Text=screenError.Length>0?screenError:ScreenModeDescription();appDrawer.Visibility=Visibility.Collapsed;sensorDrawer.Visibility=Visibility.Collapsed;CloseCommutePanel();screenDrawer.Visibility=Visibility.Visible; }
-  void CloseScreenPanel() { screenDrawer.Visibility=Visibility.Collapsed; }
+  void OpenScreenSettings() {
+   if(!buildingSetupPage){OpenUnifiedSettings("screens");return;} screenEnabled.IsChecked=screenPreferences.Enabled;screenTimeout.Text=screenPreferences.TimeoutMinutes.ToString(CultureInfo.InvariantCulture);screenStatus.Text=screenError.Length>0?screenError:ScreenModeDescription();appDrawer.Visibility=Visibility.Collapsed;sensorDrawer.Visibility=Visibility.Collapsed;CloseCommutePanel();screenDrawer.Visibility=Visibility.Visible; }
+  void CloseScreenPanel() { if(InSetup("screens") && !buildingSetupPage){setupWindow.Close();return;} screenDrawer.Visibility=Visibility.Collapsed; }
   void SaveScreenSettings() {
    int minutes;if(!Int32.TryParse(screenTimeout.Text,NumberStyles.None,CultureInfo.InvariantCulture,out minutes)) { screenStatus.Text="Enter a whole number of minutes.";return; }
    try {
@@ -59,6 +59,8 @@ namespace JarvisDesk {
    heard.Text="SAY “OPEN NOTEPAD” OR “WAKE UP”";
   }
   string ScreenModeDescription() { return !screenPreferences.Enabled?"Voice screen control is off.":screenController!=null && screenController.Active?screenController.DisplaysOff?"Screens off / listening for wake up.":"Active / screens off after "+screenPreferences.TimeoutMinutes+" minutes. Windows stays unlocked.":"Paused / turn on LISTEN and keep Windows unlocked."; }
+  string ScreenSettingsTitle {get{return "Screens / "+(screenPreferences.Enabled?screenPreferences.TimeoutMinutes+" min":"off");}}
+  void UpdateScreenSettingsNavigation(){Button link;if(setupNavigation.TryGetValue("screens",out link)){link.Content=ScreenSettingsTitle;link.ToolTip=screenError.Length>0?screenError:ScreenModeDescription();if(InSetup("screens"))setupHeading.Text=ScreenSettingsTitle.ToUpperInvariant();}}
   void RefreshScreenControl() { nextScreenCheck=DateTime.MinValue;CheckScreenControl(); }
   void CheckScreenControl() {
    if(!screenLoaded || closing || DateTime.UtcNow<nextScreenCheck) return;nextScreenCheck=DateTime.UtcNow.AddSeconds(1);
@@ -67,9 +69,9 @@ namespace JarvisDesk {
     if(enabled && DateTime.UtcNow<screenRetry) return;
     bool unlocked=enabled && WindowsScreenPower.Unlocked;
     screenController.Update(WindowsScreenPower.Now,enabled?WindowsScreenPower.LastInput:0,enabled,unlocked,speaking || questionListening || chatBusy,screenPreferences.TimeoutMinutes);
-    screenSettingsLink.Content="◉  SCREENS / "+(screenPreferences.Enabled?screenPreferences.TimeoutMinutes+" MIN":"OFF");screenSettingsLink.ToolTip=ScreenModeDescription();
-    if(screenDrawer.Visibility==Visibility.Visible && screenError.Length==0) screenStatus.Text=ScreenModeDescription();
-   } catch(Exception ex) { screenError=ex.Message;screenRetry=DateTime.UtcNow.AddMinutes(1);try { screenController.Stop(); } catch { } screenSettingsLink.ToolTip=screenError;screenStatus.Text=screenError;Log("Screen control: "+screenError); }
+    UpdateScreenSettingsNavigation();
+    if((screenDrawer.Visibility==Visibility.Visible || InSetup("screens")) && screenError.Length==0) screenStatus.Text=ScreenModeDescription();
+   } catch(Exception ex) { screenError=ex.Message;screenRetry=DateTime.UtcNow.AddMinutes(1);try { screenController.Stop(); } catch { } UpdateScreenSettingsNavigation();screenStatus.Text=screenError;Log("Screen control: "+screenError); }
    finally { WriteScreenStatus(); }
   }
   void WriteScreenStatus() {

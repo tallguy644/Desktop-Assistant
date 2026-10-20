@@ -1,3 +1,7 @@
+# Temperature alerts in SETUP
+
+Open **SETUP > Temperature alerts** to change thresholds, cooldown or spoken warnings. The HUD keeps a small status indicator; its setup button has been removed.
+
 # Spoken CPU and GPU temperature alerts
 
 Spoken alerts start enabled with your chosen limits: **CPU above 175°F** and **GPU above 175°F**. Exactly 175°F does not trigger an alert. These are your notification thresholds, not manufacturer-specific maximum temperatures.

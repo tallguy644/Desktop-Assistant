@@ -85,12 +85,13 @@ namespace JarvisDesk {
    result.Cooling = "No fan or pump RPM readings available.";
    result.CoolingDetail = "Only RPM sensors exposed by the hardware monitor can be shown.";
    result.Fans = source.Where(s => s != null && s.SensorType == "Fan" && !Double.IsNaN(s.Value) && !Double.IsInfinity(s.Value) && s.Value >= 0 && s.Value <= 50000).OrderBy(s => s.Parent).ThenBy(s => s.Name).ToList();
-   var cooling = result.Fans.Where(s => Kind(s) != "GPU").ToList();
+   var cooling = result.Fans.Where(s => Kind(s) != "GPU" && s.Value > 0).ToList();
+   if(cooling.Count==0 && result.Fans.Any(s=>Kind(s)!="GPU")){result.Cooling="No active fan or pump speeds to display.";result.CoolingDetail="Zero RPM channels are hidden until their speed increases.";}
    if (cooling.Count > 0) {
     result.Cooling = String.Join(Environment.NewLine, cooling.Select(s => s.Name + ": " + s.Value.ToString("0", CultureInfo.InvariantCulture) + " RPM"));
     result.CoolingDetail = String.Join(Environment.NewLine, cooling.Select(s => s.Name + " [" + s.Identifier + "]")) + Environment.NewLine + "Generic fan numbers do not identify AIO wiring. Zero means a reported 0 RPM, not a confirmed disconnected fan.";
    }
-   if (result.Fans.Count > 0) result.Details += Environment.NewLine + Environment.NewLine + "FAN / PUMP SPEEDS · RPM" + Environment.NewLine + String.Join(Environment.NewLine, result.Fans.Select(s => s.Name + ": " + s.Value.ToString("0", CultureInfo.InvariantCulture) + " RPM [" + s.Identifier + "]"));
+   if (result.Fans.Any(s=>s.Value>0)) result.Details += Environment.NewLine + Environment.NewLine + "FAN / PUMP SPEEDS · RPM" + Environment.NewLine + String.Join(Environment.NewLine, result.Fans.Where(s=>s.Value>0).Select(s => s.Name + ": " + s.Value.ToString("0", CultureInfo.InvariantCulture) + " RPM [" + s.Identifier + "]"));
   }
   static bool ParseRpm(string text, out double rpm) {
    text = (text ?? "").Trim(); text = Regex.Replace(text, @"\s*RPM\s*$", "", RegexOptions.IgnoreCase).Trim();

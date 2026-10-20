@@ -23,10 +23,10 @@ namespace JarvisDesk {
   }
   Grid BuildThermalReadings() {
    var host=new Grid(); thermalReadings=new StackPanel();
-   thermalReadings.Children.Add(Label("CPU PACKAGE",11,cyan)); cpuTemp=Label("—",35,cyan); thermalReadings.Children.Add(cpuTemp);
-   thermalReadings.Children.Add(Label("GPU CORE",11,cyan)); gpuTemp=Label("—",35,cyan); thermalReadings.Children.Add(gpuTemp);
+   thermalReadings.Children.Add(Label("CPU PACKAGE",11,cyan)); cpuTemp=Label("—",31,cyan); thermalReadings.Children.Add(cpuTemp);
+   thermalReadings.Children.Add(Label("GPU CORE",11,cyan)); gpuTemp=Label("—",31,cyan); thermalReadings.Children.Add(gpuTemp);
    var actions=new StackPanel { Orientation=Orientation.Horizontal };
-   actions.Children.Add(ChatControl("TEMP ALERTS",116,ToggleThermalSettings)); thermalBadge=Label("ON / 175°F",9,muted); thermalBadge.Width=82; thermalBadge.VerticalAlignment=VerticalAlignment.Center; thermalBadge.Margin=new Thickness(0,0,0,5); actions.Children.Add(thermalBadge); thermalReadings.Children.Add(actions); host.Children.Add(thermalReadings);
+   actions.Children.Add(Label("ALERTS / ",9,muted)); thermalBadge=Label("ON / 175°F",9,muted); thermalBadge.Width=82; thermalBadge.VerticalAlignment=VerticalAlignment.Center; thermalBadge.Margin=new Thickness(0,0,0,5); actions.Children.Add(thermalBadge); thermalReadings.Children.Add(actions); host.Children.Add(thermalReadings);
    thermalSettings=new StackPanel { Visibility=Visibility.Collapsed };
    thermalEnabled=new CheckBox { Content="Spoken temperature alerts",Foreground=cyan,FontSize=11,Margin=new Thickness(0,0,0,6) }; thermalSettings.Children.Add(thermalEnabled);
    cpuAlertLimit=ThermalNumber(thermalSettings,"CPU above °F",70); gpuAlertLimit=ThermalNumber(thermalSettings,"GPU above °F",70); thermalCooldown=ThermalNumber(thermalSettings,"Repeat / minutes",55);
@@ -39,11 +39,12 @@ namespace JarvisDesk {
    var input=new TextBox { Width=width,Height=23,MaxLength=3,Padding=new Thickness(4,2,4,2),FontSize=11,Background=Ink(3,19,27),Foreground=Brushes.White,BorderBrush=Ink(0,103,115) }; row.Children.Add(input); parent.Children.Add(row); return input;
   }
   void ToggleThermalSettings() {
+   if(!buildingSetupPage){OpenUnifiedSettings("thermal");return;}
    if(thermalSettings.Visibility==Visibility.Visible) { CloseThermalSettings(); return; }
    thermalEnabled.IsChecked=temperaturePreferences.Enabled; cpuAlertLimit.Text=temperaturePreferences.CpuLimitF.ToString(CultureInfo.InvariantCulture); gpuAlertLimit.Text=temperaturePreferences.GpuLimitF.ToString(CultureInfo.InvariantCulture); thermalCooldown.Text=temperaturePreferences.CooldownMinutes.ToString(CultureInfo.InvariantCulture);
    thermalSettingsStatus.Text="2 high samples · 9°F reset margin"; thermalReadings.Visibility=Visibility.Collapsed; thermalSettings.Visibility=Visibility.Visible;
   }
-  void CloseThermalSettings() { thermalSettings.Visibility=Visibility.Collapsed; thermalReadings.Visibility=Visibility.Visible; }
+  void CloseThermalSettings() { if(InSetup("thermal") && !buildingSetupPage){setupWindow.Close();return;} thermalSettings.Visibility=Visibility.Collapsed; thermalReadings.Visibility=Visibility.Visible; }
   void SaveThermalSettings() {
    int cpu,gpu,cooldown;
    if(!Int32.TryParse(cpuAlertLimit.Text,NumberStyles.None,CultureInfo.InvariantCulture,out cpu) || !Int32.TryParse(gpuAlertLimit.Text,NumberStyles.None,CultureInfo.InvariantCulture,out gpu) || !Int32.TryParse(thermalCooldown.Text,NumberStyles.None,CultureInfo.InvariantCulture,out cooldown)) { thermalSettingsStatus.Text="Enter whole numbers for each setting."; return; }
@@ -64,7 +65,7 @@ namespace JarvisDesk {
   }
   VoicePreferences ThermalVoice() {
    var source=voicePreferences;
-   return new VoicePreferences { Provider=source.Provider,Region=source.Region,Voice=source.Voice,DesktopVoice=source.DesktopVoice,ProtectedKey=source.ProtectedKey,Rate=source.Rate,Volume=source.Volume,WindowsFallback=true };
+   return new VoicePreferences { Provider=source.Provider,Region=source.Region,Voice=source.Voice,VoiceLocale=source.VoiceLocale,DesktopVoice=source.DesktopVoice,ProtectedKey=source.ProtectedKey,Rate=source.Rate,Volume=source.Volume,WindowsFallback=true };
   }
   void CheckThermalAlerts() {
    if(!temperatureAlertsLoaded || closing) return;

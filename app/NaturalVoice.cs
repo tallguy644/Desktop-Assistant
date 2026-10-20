@@ -14,6 +14,7 @@ namespace JarvisDesk {
   [DataMember] public string Provider = "windows";
   [DataMember] public string Region = "";
   [DataMember] public string Voice = "en-US-LunaNeural";
+  [DataMember] public string VoiceLocale = "";
   [DataMember] public string DesktopVoice = "";
   [DataMember] public string ProtectedKey = "";
   [DataMember] public int Rate = -30;
@@ -27,7 +28,8 @@ namespace JarvisDesk {
    if (Rate < -50 || Rate > 25 || Volume < 0 || Volume > 100) throw new ArgumentException("Voice speed or volume is outside the supported range.");
    if (Provider == "azure") {
     if (!Regex.IsMatch(Region ?? "", "^[a-z0-9]{3,32}$")) throw new ArgumentException("Enter your Azure Speech region, for example eastus, without spaces.");
-    if (Voice != "en-HK-YanNeural" && Voice != "ja-JP-NanamiNeural" && Voice != "zh-CN-XiaoxiaoNeural" && Voice != "en-US-LunaNeural" && Voice != "en-US-JennyNeural" && Voice != "en-GB-RyanNeural" && Voice != "en-GB-SoniaNeural" && Voice != "en-GB-ThomasNeural" && Voice != "en-GB-LibbyNeural") throw new ArgumentException("Choose a supported natural voice.");
+    if (!AzureVoiceCatalog.ValidName(Voice)) throw new ArgumentException("Choose a natural voice from the Azure catalog.");
+    if (!String.IsNullOrEmpty(VoiceLocale) && !AzureVoiceCatalog.ValidLocale(VoiceLocale)) throw new ArgumentException("Choose a valid voice language.");
     if (!Regex.IsMatch(ReadKey(), "^[A-Za-z0-9+/=_-]{20,256}$")) throw new ArgumentException("Enter a valid Azure Speech resource key in the private key field.");
    }
   }
@@ -46,12 +48,13 @@ namespace JarvisDesk {
    if (String.IsNullOrWhiteSpace(text) || text.Length > 1200) throw new ArgumentException("Voice text must contain between 1 and 1,200 characters.");
    var output = new StringBuilder(); var options = new XmlWriterSettings { OmitXmlDeclaration = true };
    using (var xml = XmlWriter.Create(output, options)) {
-    xml.WriteStartElement("speak", "http://www.w3.org/2001/10/synthesis"); xml.WriteAttributeString("version", "1.0"); xml.WriteAttributeString("xml", "lang", "http://www.w3.org/XML/1998/namespace", settings.Voice.StartsWith("en-GB-", StringComparison.Ordinal) ? "en-GB" : settings.Voice.StartsWith("en-HK-", StringComparison.Ordinal)?"en-HK":"en-US");
+    xml.WriteStartElement("speak", "http://www.w3.org/2001/10/synthesis"); xml.WriteAttributeString("version", "1.0"); xml.WriteAttributeString("xml", "lang", "http://www.w3.org/XML/1998/namespace", !String.IsNullOrEmpty(settings.VoiceLocale)?settings.VoiceLocale:(settings.Voice=="ja-JP-NanamiNeural" || settings.Voice=="zh-CN-XiaoxiaoNeural"?"en-US":AzureVoiceCatalog.LocaleOf(settings.Voice)));
     xml.WriteStartElement("voice", "http://www.w3.org/2001/10/synthesis"); xml.WriteAttributeString("name", settings.Voice);
     bool conversational = settings.Voice == "en-US-LunaNeural";
     if (conversational) { xml.WriteStartElement("mstts", "express-as", "https://www.w3.org/2001/mstts"); xml.WriteAttributeString("style", "conversation"); }
-    xml.WriteStartElement("prosody", "http://www.w3.org/2001/10/synthesis"); xml.WriteAttributeString("rate", (settings.Rate >= 0 ? "+" : "") + settings.Rate + "%"); xml.WriteAttributeString("volume", settings.Volume.ToString(System.Globalization.CultureInfo.InvariantCulture));
-    xml.WriteString(text); xml.WriteEndElement(); if (conversational) xml.WriteEndElement(); xml.WriteEndElement(); xml.WriteEndElement();
+    bool prosody = !AzureVoiceCatalog.IsHd(settings.Voice);
+    if(prosody) { xml.WriteStartElement("prosody", "http://www.w3.org/2001/10/synthesis"); xml.WriteAttributeString("rate", (settings.Rate >= 0 ? "+" : "") + settings.Rate + "%"); xml.WriteAttributeString("volume", settings.Volume.ToString(System.Globalization.CultureInfo.InvariantCulture)); }
+    xml.WriteString(text); if(prosody) xml.WriteEndElement(); if (conversational) xml.WriteEndElement(); xml.WriteEndElement(); xml.WriteEndElement();
    }
    return output.ToString();
   }

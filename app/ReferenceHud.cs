@@ -10,7 +10,6 @@ using System.Windows.Shapes;
 namespace JarvisDesk {
  public partial class Desk {
   System.Windows.Shapes.Path cpuDialArc, ramDialArc, gpuDialArc;
-  Border[] calendarCells;
   long referenceClockSecond;
   void BuildReferenceHud() {
    WindowStyle = WindowStyle.None; ResizeMode = ResizeMode.CanResizeWithGrip;
@@ -21,7 +20,7 @@ namespace JarvisDesk {
     double scale=Math.Min(ActualWidth/1440.0,ActualHeight/810.0);
     chrome.CaptionHeight=Math.Max(6,(ActualHeight-810*scale)/2+70*scale);
    };
-   Resources.Add(typeof(Button), (Style)System.Windows.Markup.XamlReader.Parse(@"<Style xmlns='http://schemas.microsoft.com/winfx/2006/xaml/presentation' TargetType='Button'><Setter Property='Template'><Setter.Value><ControlTemplate TargetType='Button'><Border x:Name='Frame' xmlns:x='http://schemas.microsoft.com/winfx/2006/xaml' Background='{TemplateBinding Background}' BorderBrush='{TemplateBinding BorderBrush}' BorderThickness='{TemplateBinding BorderThickness}' Padding='{TemplateBinding Padding}'><ContentPresenter HorizontalAlignment='Center' VerticalAlignment='Center'/></Border><ControlTemplate.Triggers><Trigger Property='IsMouseOver' Value='True'><Setter TargetName='Frame' Property='Background' Value='{DynamicResource HudHoverBackground}'/><Setter TargetName='Frame' Property='BorderBrush' Value='{DynamicResource HudHoverBorder}'/></Trigger><Trigger Property='IsKeyboardFocused' Value='True'><Setter TargetName='Frame' Property='BorderBrush' Value='White'/></Trigger></ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter></Style>"));
+   Resources.Add(typeof(Button), (Style)System.Windows.Markup.XamlReader.Parse(@"<Style xmlns='http://schemas.microsoft.com/winfx/2006/xaml/presentation' TargetType='Button'><Setter Property='Template'><Setter.Value><ControlTemplate TargetType='Button'><Border CornerRadius='6' x:Name='Frame' xmlns:x='http://schemas.microsoft.com/winfx/2006/xaml' Background='{TemplateBinding Background}' BorderBrush='{TemplateBinding BorderBrush}' BorderThickness='{TemplateBinding BorderThickness}' Padding='{TemplateBinding Padding}'><ContentPresenter HorizontalAlignment='Center' VerticalAlignment='Center'/></Border><ControlTemplate.Triggers><Trigger Property='IsMouseOver' Value='True'><Setter TargetName='Frame' Property='Background' Value='{DynamicResource HudHoverBackground}'/><Setter TargetName='Frame' Property='BorderBrush' Value='{DynamicResource HudHoverBorder}'/></Trigger><Trigger Property='IsKeyboardFocused' Value='True'><Setter TargetName='Frame' Property='BorderBrush' Value='White'/></Trigger></ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter></Style>"));
    Resources.Add(typeof(System.Windows.Controls.Primitives.ScrollBar), (Style)System.Windows.Markup.XamlReader.Parse(@"<Style xmlns='http://schemas.microsoft.com/winfx/2006/xaml/presentation' TargetType='ScrollBar'><Setter Property='Width' Value='4'/><Setter Property='Template'><Setter.Value><ControlTemplate TargetType='ScrollBar'><Grid Background='Transparent'><Track x:Name='PART_Track' xmlns:x='http://schemas.microsoft.com/winfx/2006/xaml' IsDirectionReversed='True'><Track.Thumb><Thumb><Thumb.Template><ControlTemplate TargetType='Thumb'><Border Background='{DynamicResource HudScrollThumb}'/></ControlTemplate></Thumb.Template></Thumb></Track.Thumb></Track></Grid></ControlTemplate></Setter.Value></Setter></Style>"));
    foreach(string key in new[]{"HudHoverBackground","HudHoverBorder","HudScrollThumb"})((Style)Resources[typeof(Button)]).Resources[key]=Resources[key];
    ((Style)Resources[typeof(System.Windows.Controls.Primitives.ScrollBar)]).Resources["HudScrollThumb"]=Resources["HudScrollThumb"];
@@ -29,33 +28,24 @@ namespace JarvisDesk {
    Content = new Viewbox { Stretch = Stretch.Uniform, Child = stage };
    hudTaskbarTab=CompactButton("TASKBAR ↑",RevealHudTaskbar);hudTaskbarTab.Visibility=Visibility.Collapsed;hudTaskbarTab.FontSize=9;hudTaskbarTab.Padding=new Thickness(2,0,2,0);hudTaskbarTab.ToolTip="Hover or click to show this monitor's taskbar.";hudTaskbarTab.MouseEnter+=delegate{try{RevealHudTaskbar();}catch(Exception ex){Log(ex.Message);}};
    DrawCircuitField(stage);
-   calendarCells = new Border[31];
-   for (int day = 1; day <= 31; day++) {
-    var label = Label(day.ToString("00"), 14, cyan); label.Margin = new Thickness(0); label.TextAlignment = TextAlignment.Center;
-    var cell = new Border { Child = label, CornerRadius = new CornerRadius(3), Padding = new Thickness(3, 1, 3, 1) }; calendarCells[day - 1] = cell; Place(stage, cell, 8 + (day - 1) * 42.8, 1, 30, 25);
-   }
-   Place(stage,CompactButton("COLORS / SETUP",OpenAppearanceSettings),1178,32,128,28);
-   Place(stage, CompactButton("_", MinimizeDeck), 1313, 32, 30, 28);
-   Place(stage, CompactButton("□", ToggleDeckSize), 1349, 32, 30, 28); Place(stage, CompactButton("×", Close), 1385, 32, 30, 28);
-   Wire(stage, 48, 40, 48, 782, Ink(0, 168, 174), 1); Wire(stage, 53, 267, 53, 747, cyan, 4); Wire(stage, 62, 40, 309, 40, Ink(0, 92, 101), 1);
+   DrawHolographicStage(stage);
+   Place(stage,CompactButton("SETUP",OpenSettings),1130,32,90,28);
+   Place(stage,CompactButton("EXPAND / F11",ToggleDeckSize),1230,32,128,28);
+   Place(stage,CompactButton("_",MinimizeDeck),1366,32,26,28);
+   Place(stage,CompactButton("×",Close),1400,32,26,28);
    CreateCalendarPanel(stage);
-   clock = Label(DateTime.Now.ToString("HH:mm:ss"), 15, cyan); Place(stage, clock, 270, 50, 130, 30);
-   var cpuGauge = PercentDial("CPU", out cpuLoad, out cpuDialArc, 138); Place(stage, cpuGauge, 298, 98, 138, 138);
-   var ramGauge = PercentDial("RAM", out ramStatus, out ramDialArc, 138); Place(stage, ramGauge, 446, 35, 138, 138);
-   ramDetails = Label("", 11, cyan); Place(stage, ramDetails, 447, 180, 176, 28);
-   Wire(stage, 581, 83, 745, 83, cyan, 1.5); Wire(stage, 745, 83, 780, 110, cyan, 1.5);
-   Place(stage, Label("VOICE / HARDWARE INTERFACE", 10, muted), 601, 74, 200, 25);
+   clock = Label(DateTime.Now.ToString("HH:mm:ss"), 27, cyan); Place(stage, clock, 76, 42, 200, 42);
+   var cpuGauge = PercentDial("CPU", out cpuLoad, out cpuDialArc, 138); Place(stage, cpuGauge, 308, 53, 138, 138);
+   var ramGauge = PercentDial("RAM", out ramStatus, out ramDialArc, 138); Place(stage, ramGauge, 465, 53, 138, 138);
+   ramDetails = Label("", 11, cyan); Place(stage, ramDetails, 466, 29, 176, 24);
    CreateNextUpDial(stage);
    var thermal = BuildThermalReadings();
-   Place(stage, ReferenceSection("THERMAL READINGS · °F", thermal, 230, 205), 76, 266, 230, 205);
+   Place(stage, ReferenceSection("THERMAL READINGS · °F", thermal, 230, 225), 76, 366, 230, 225);
    var memory = new StackPanel(); memory.Children.Add(Label("LIVE CPU / GPU / RAM LOAD", 10, muted));
-   cpuBar = new Rectangle { Height = 3, Fill = cyan, Width = 0, HorizontalAlignment = HorizontalAlignment.Left, Margin = new Thickness(0, 0, 0, 7) }; gpuBar = new Rectangle { Height = 3, Fill = cyan, Width = 0, HorizontalAlignment = HorizontalAlignment.Left, Margin = new Thickness(0, 0, 0, 7) }; ramBar = new Rectangle { Height = 3, Fill = cyan, Width = 0, HorizontalAlignment = HorizontalAlignment.Left }; memory.Children.Add(cpuBar); memory.Children.Add(gpuBar); memory.Children.Add(ramBar); Place(stage, memory, 77, 480, 262, 51);
-   var links = new StackPanel(); chatNavigationButton=CompactButton("◉  CONVERSATION",OpenChatPanel);links.Children.Add(chatNavigationButton); links.Children.Add(CompactButton("◉  SENSOR READINGS", delegate { OpenSensorOverlay(); })); links.Children.Add(CompactButton("◉  APP MAPPINGS", delegate { OpenAppOverlay(); })); links.Children.Add(CompactButton("◉  VOICE SETTINGS", OpenVoiceSettings)); links.Children.Add(CompactButton("◉  YOUR NAME / GREETING", OpenNameSettings)); screenSettingsLink=CompactButton("◉  SCREENS / OFF",OpenScreenSettings); links.Children.Add(screenSettingsLink); links.Children.Add(CompactButton("◉  EXPAND / F11", ToggleDeckSize)); foreach(Button item in links.Children) { item.Height=22;item.FontSize=11;item.Padding=new Thickness(4,2,4,2);item.Margin=new Thickness(0,0,3,2); } Place(stage, links, 76, 548, 240, 170);
+   cpuBar = new Rectangle { Height = 3, Fill = cyan, Width = 0, HorizontalAlignment = HorizontalAlignment.Left, Margin = new Thickness(0, 0, 0, 7) }; gpuBar = new Rectangle { Height = 3, Fill = cyan, Width = 0, HorizontalAlignment = HorizontalAlignment.Left, Margin = new Thickness(0, 0, 0, 7) }; ramBar = new Rectangle { Height = 3, Fill = cyan, Width = 0, HorizontalAlignment = HorizontalAlignment.Left }; memory.Children.Add(cpuBar); memory.Children.Add(gpuBar); memory.Children.Add(ramBar); Place(stage, memory, 77, 604, 230, 51);
    var reactor = new Viewbox { Child = ReferenceReactor(), Stretch = Stretch.Uniform }; Place(stage, reactor, 327, 185, 470, 470);
    state.TextAlignment = TextAlignment.Center; Place(stage, state, 459, 676, 220, 25);
-   var launches = new StackPanel(); launches.Children.Add(CompactButton("●  Chrome", delegate { LaunchMapped("chrome"); })); launches.Children.Add(CompactButton("●  Spotify", delegate { LaunchMapped("spotify"); })); launches.Children.Add(CompactButton("●  Notepad", delegate { LaunchMapped("notepad"); })); Place(stage, launches, 611, 108, 150, 83);
-   var extraLinks = new StackPanel(); extraLinks.Children.Add(CompactButton("●  Applications", OpenAppOverlay)); extraLinks.Children.Add(CompactButton("●  Sensor array", OpenSensorOverlay)); Place(stage, extraLinks, 269, 596, 172, 93);
-   var gpuGauge = PercentDial("GPU LOAD", out gpuLoad, out gpuDialArc, 158); Place(stage, gpuGauge, 961, 36, 158, 158);
+   var gpuGauge = PercentDial("GPU LOAD", out gpuLoad, out gpuDialArc, 158); Place(stage, gpuGauge, 619, 43, 158, 158);
    var cooling = new StackPanel(); coolingSpeeds = SensorText(122); coolingSpeeds.Foreground = cyan; cooling.Children.Add(coolingSpeeds); cooling.Children.Add(Label("FANS / PUMP SENSORS\nCHANNEL ASSIGNMENT UNCONFIRMED", 9, muted)); Place(stage, ReferenceSection("COOLING / RPM", cooling, 242, 209), 1160, 90, 242, 209);
    var board = new StackPanel(); boardTemps = SensorText(117); boardTemps.Foreground = cyan; board.Children.Add(boardTemps); Place(stage, ReferenceSection("MOTHERBOARD / °F", board, 242, 165), 1160, 319, 242, 165);
    var connection = new StackPanel(); sensorState = Label("CONNECTING…", 11, cyan); connection.Children.Add(sensorState); sensorTime = Label("", 10, muted); connection.Children.Add(sensorTime); voiceInfo = Label("", 9, muted); connection.Children.Add(voiceInfo); Place(stage, ReferenceSection("LOCAL SYSTEM LINK", connection, 242, 138), 1160, 504, 242, 138);
@@ -77,23 +67,23 @@ namespace JarvisDesk {
    UpdateReferenceClock();
   }
   Button CompactButton(string title, Action action) {
-   var button = Action(title, action); System.Windows.Shell.WindowChrome.SetIsHitTestVisibleInChrome(button,true); button.Background = Brushes.Transparent; button.BorderBrush = Brushes.Transparent; button.BorderThickness = new Thickness(0); button.Padding = new Thickness(4, 5, 4, 5); button.Margin = new Thickness(0, 0, 3, 3); button.Width = Math.Max(34, title.Length * 7 + 16); button.FontSize = 12; button.Foreground = cyan; return button;
+   var button = Action(title, action); System.Windows.Shell.WindowChrome.SetIsHitTestVisibleInChrome(button,true); button.Background = ThemeArgb(115,13,43,65,ThemeRole.Accent); button.BorderBrush = ThemeArgb(90,110,189,235,ThemeRole.Accent); button.BorderThickness = new Thickness(1); button.Padding = new Thickness(4, 5, 4, 5); button.Margin = new Thickness(0, 0, 3, 3); button.Width = Math.Max(34, title.Length * 7 + 16); button.FontSize = 12; button.Foreground = cyan; return button;
   }
   void ToggleDeckSize() { if(IsDesktop) { DisableDesktop(true);Activate();return; } WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized; }
-  void OpenSensorOverlay() { CloseScreenPanel();sensorDrawer.Visibility = Visibility.Visible; appDrawer.Visibility = Visibility.Collapsed; HideChatPanel(); }
-  void OpenAppOverlay() { CloseScreenPanel();appDrawer.Visibility = Visibility.Visible; sensorDrawer.Visibility = Visibility.Collapsed; HideChatPanel(); }
+  void OpenSensorOverlay() { OpenUnifiedSettings("sensors"); }
+  void OpenAppOverlay() { OpenUnifiedSettings("apps"); }
   void LaunchMapped(string name) { var map = maps.FirstOrDefault(m => m.Name.Equals(name, StringComparison.OrdinalIgnoreCase)); if (map == null) { OpenAppOverlay(); Log("Add a mapping for " + name + " to use this launcher."); } else Launch(map); }
   Grid ReferenceSection(string title, UIElement content, double width, double height) {
    TextBlock heading;return ReferenceSection(title,content,width,height,out heading);
   }
   Grid ReferenceSection(string title, UIElement content, double width, double height,out TextBlock heading) {
-   var result = new Grid { Width = width, Height = height }; var frame = new Canvas { IsHitTestVisible = false };
-   Wire(frame, 0, 28, width, 28, Ink(0, 110, 118), 1); Wire(frame, 0, 28, 0, height - 12, Ink(0, 82, 90), 1); Wire(frame, 0, 28, 46, 28, cyan, 2);
-   var text = new DockPanel { Margin = new Thickness(10, 0, 8, 0) }; heading = Label(title, 13, cyan); DockPanel.SetDock(heading, Dock.Top); text.Children.Add(heading); text.Children.Add(content); result.Children.Add(frame); result.Children.Add(text); return result;
+   var result=new Grid {Width=width,Height=height};result.Children.Add(new Border {Name="HologramBacking",Width=width,Height=height,CornerRadius=new CornerRadius(16),BorderThickness=new Thickness(1),BorderBrush=ThemeArgb(65,166,217,255,ThemeRole.Accent),Background=ThemeArgb(12,94,178,230,ThemeRole.Accent),RenderTransform=new TranslateTransform(7,-7),IsHitTestVisible=false});result.Children.Add(HologramGlass(width,height));var sheen=new Rectangle {Height=height*0.48,RadiusX=16,RadiusY=16,VerticalAlignment=VerticalAlignment.Top,Fill=new LinearGradientBrush {StartPoint=new Point(0,0),EndPoint=new Point(0.8,1),GradientStops=new GradientStopCollection {themePalette.Stop(Color.FromArgb(30,211,242,255),0,ThemeRole.Accent),themePalette.Stop(Colors.Transparent,1,ThemeRole.Accent)}},IsHitTestVisible=false};result.Children.Add(sheen);
+   var highlights=new Canvas {IsHitTestVisible=false};Wire(highlights,14,1,width*0.48,1,ThemeArgb(175,151,225,255,ThemeRole.Accent),1.3);Wire(highlights,1,18,1,48,cyan,2);result.Children.Add(highlights);
+   var text=new DockPanel {Margin=new Thickness(12,8,12,8)};heading=Label(title,11,cyan);heading.FontFamily=new FontFamily("Segoe UI");heading.FontWeight=FontWeights.SemiBold;DockPanel.SetDock(heading,Dock.Top);text.Children.Add(heading);text.Children.Add(content);result.Children.Add(text);return result;
   }
   Grid PercentDial(string caption, out TextBlock value, out System.Windows.Shapes.Path arc, double size) {
-   var result = new Grid { Width = size, Height = size }; result.Children.Add(Ring(size - 5, Ink(0, 102, 113), 10, null, 0)); result.Children.Add(Ring(size - 22, Ink(0, 50, 60), 2, null, 0));
-   arc = Arc(size, size / 2 - 3, -90, -89.9, cyan, 10); result.Children.Add(arc);
+   var result = new Grid { Width = size, Height = size }; result.Children.Add(Ring(size - 5, RingInk(30,80,123), 6, null, 0)); result.Children.Add(Ring(size - 22, RingInk(30,60,90), 1, null, 0));
+   arc = Arc(size, size / 2 - 3, -90, -89.9, RingInk(144,218,255), 6); result.Children.Add(arc);
    var text = new StackPanel { VerticalAlignment = VerticalAlignment.Center, HorizontalAlignment = HorizontalAlignment.Center }; var label = Label(caption, 11, cyan); label.TextAlignment = TextAlignment.Center; text.Children.Add(label); value = Label("—", 28, cyan); value.FontFamily = new FontFamily("Bahnschrift Condensed"); value.TextAlignment = TextAlignment.Center; value.Margin = new Thickness(0); text.Children.Add(value); result.Children.Add(text); return result;
   }
   void UpdateDial(System.Windows.Shapes.Path arc, double? percent, double size) {
@@ -105,13 +95,12 @@ namespace JarvisDesk {
    var now = DateTime.Now;
    long second=now.Ticks/TimeSpan.TicksPerSecond;if(second==referenceClockSecond) return;referenceClockSecond=second;
    if(clock!=null) clock.Text=now.ToString("HH:mm:ss");
-   for (int day = 1; day <= 31; day++) { var cell = calendarCells[day - 1]; cell.Visibility = day <= DateTime.DaysInMonth(now.Year, now.Month) ? Visibility.Visible : Visibility.Hidden; cell.Background = day == now.Day ? cyan : Brushes.Transparent; ((TextBlock)cell.Child).Foreground = day == now.Day ? Brushes.Black : cyan; }
   }
   Grid ReferenceReactor() {
    var result = new Grid { Width = 560, Height = 560, IsHitTestVisible = false };
    coreAura = new Ellipse { Width = 540, Height = 540, Fill = ThemeRadial(Color.FromArgb(105,70,130,210),Colors.Transparent,ThemeRole.Rings) }; result.Children.Add(coreAura);
    result.Children.Add(Ring(526, RingInk(80, 119, 157), 2, null, 0));
-   var outer = new Grid { Width = 516, Height = 516 };
+   var outer = new Grid { Width = 516, Height = 516,Opacity=0.27 };
    outer.Children.Add(Arc(516, 254, -118, -29, RingInk(116, 179, 230), 3)); outer.Children.Add(Arc(516, 254, -19, 67, RingInk(147, 201, 241), 2)); outer.Children.Add(Arc(516, 254, 83, 177, RingInk(107, 162, 207), 3)); outer.Children.Add(Arc(516, 254, 194, 231, RingInk(134, 189, 230), 2));
    outer.Children.Add(Arc(516, 245, -97, 22, RingInk(38, 65, 93), 13)); outer.Children.Add(Arc(516, 245, 39, 145, RingInk(58, 92, 129), 13)); outer.Children.Add(Arc(516, 245, 166, 221, RingInk(51, 79, 112), 11));
    var ports = new Canvas { Width = 516, Height = 516 };
@@ -123,11 +112,11 @@ namespace JarvisDesk {
    for (int i = 0; i < 72; i++) { var a = Polar(243, 243, i % 3 == 0 ? 217 : 224, i * 5); var b = Polar(243, 243, 236, i * 5); Wire(ticks, a.X, a.Y, b.X, b.Y, i % 3 == 0 ? RingInk(185, 220, 255) : RingInk(98, 139, 180), i % 3 == 0 ? 1.2 : 0.65); }
    result.Children.Add(ticks);
    result.Children.Add(Ring(410, RingInk(38, 65, 93), 20, null, 0));
-   var casing = new Grid { Width = 410, Height = 410 };
+   var casing = new Grid { Width = 410, Height = 410,Opacity=0.36 };
    casing.Children.Add(Arc(410, 198, -110, 84, ThemeArgb(155,140,188,235,ThemeRole.Rings), 15)); casing.Children.Add(Arc(410, 198, 109, 228, RingInk(89, 133, 181), 15));
    casing.Children.Add(Arc(410, 208, -61, 121, RingInk(163, 205, 242), 1)); casing.Children.Add(Arc(410, 186, -120, 69, RingInk(189, 221, 250), 1)); Spin(casing, 82); result.Children.Add(casing);
-   result.Children.Add(new Ellipse { Width = 355, Height = 355, Fill = new SolidColorBrush(Color.FromArgb(210, 0, 9, 15)) });
-   var mainBand = new Grid { Width = 370, Height = 370 };
+   result.Children.Add(HologramOrb());
+   var mainBand = new Grid { Width = 370, Height = 370,Opacity=0.3 };
    mainBand.Children.Add(Arc(370, 174, -83, 118, RingInk(165, 215, 255), 18)); mainBand.Children.Add(Arc(370, 174, 127, 157, RingInk(133, 179, 223), 18)); mainBand.Children.Add(Arc(370, 174, 164, 232, RingInk(97, 144, 189), 16));
    mainBand.Children.Add(Arc(370, 185, -91, 105, RingInk(181, 215, 245), 1));
    var bandPorts = new Canvas { Width = 370, Height = 370 };
@@ -149,7 +138,7 @@ namespace JarvisDesk {
    AddRedReactorAccent(result,"RedAccentOuter",478,232,-65,-29,31,1.5,220);
    AddRedReactorAccent(result,"RedAccentMiddle",328,159,45,94,27,1.3,235);
    AddRedReactorAccent(result,"RedAccentInner",228,109,133,162,-13,1.5,216);
-   state = Label("STANDBY", 14, cyan); SetCorePulse(false); return result;
+   AddHologramOrbits(result);state = Label("STANDBY", 14, cyan); SetCorePulse(false); return result;
   }
   void AddRedReactorAccent(Grid reactor,string name,double size,double radius,double from,double to,double seconds,double thickness,byte red) {
    var accent=new Grid { Name=name,Width=size,Height=size,HorizontalAlignment=HorizontalAlignment.Center,VerticalAlignment=VerticalAlignment.Center,IsHitTestVisible=false };
@@ -175,12 +164,12 @@ namespace JarvisDesk {
    };
    foreach (var points in paths) { var trace = new Polyline { Points = new PointCollection(points), Stroke = Ink(0, 91, 115), StrokeThickness = 1, Opacity = 0.75, Effect = themePalette.Glow(Colors.DeepSkyBlue,ThemeRole.Accent,7,0.8) }; field.Children.Add(trace); var end = points[points.Length - 1]; Place(field, new Ellipse { Fill = cyan, Effect = themePalette.Glow(Colors.Cyan,ThemeRole.Accent,10,0.8) }, end.X - 4, end.Y - 4, 8, 8); }
    var random = new Random(44); for (int i = 0; i < 80; i++) { double size = i % 7 == 0 ? 6 : 3; Place(field, new Ellipse { Fill = i % 3 == 0 ? Ink(0, 190, 152) : Ink(0, 96, 112), Opacity = 0.5 }, random.Next(70, 1430), random.Next(60, 795), size, size); }
-   field.Opacity = 0.65; stage.Children.Add(field);
+   field.Opacity = 0.08; stage.Children.Add(field);
   }
   void CreateReferenceOverlays(Canvas stage) {
-   var appHost = new DockPanel(); var close = Action("CLOSE APP MAPPINGS / ESC", delegate { appDrawer.Visibility = Visibility.Collapsed; }); DockPanel.SetDock(close, Dock.Top); appHost.Children.Add(close); appHost.Children.Add(BuildAppPanel()); appDrawer = PanelBox(appHost); appDrawer.Visibility = Visibility.Collapsed; Place(stage, appDrawer, 345, 130, 760, 595);
-   var sensors = new DockPanel(); var closeSensors = Action("CLOSE SENSOR READINGS / ESC", delegate { sensorDrawer.Visibility = Visibility.Collapsed; }); DockPanel.SetDock(closeSensors, Dock.Top); sensors.Children.Add(closeSensors);
-   var tools = new WrapPanel(); tools.Children.Add(Action("SENSOR SETUP", delegate { MessageBox.Show("Keep Libre Hardware Monitor running with its local web server at 127.0.0.1:8085. All temperatures are Fahrenheit. Fan and pump RPM channels retain their hardware labels until their physical connections are confirmed. The app ZIP includes a connection-repair helper.", "Sensor setup"); })); tools.Children.Add(Action("DOWNLOAD MONITOR", delegate { System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo { FileName = "https://github.com/LibreHardwareMonitor/LibreHardwareMonitor/releases", UseShellExecute = true }); })); tools.Children.Add(Action("COPY DIAGNOSTICS",CopyDiagnostics)); DockPanel.SetDock(tools, Dock.Bottom); sensors.Children.Add(tools);
+   var appHost = new DockPanel();appHost.Children.Add(BuildAppPanel());appDrawer=PanelBox(appHost);appDrawer.Visibility=Visibility.Collapsed;Place(stage,appDrawer,345,130,760,595);
+   var sensors = new DockPanel();
+   var tools = new WrapPanel(); tools.Children.Add(Action("DOWNLOAD MONITOR", delegate { System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo { FileName = "https://github.com/LibreHardwareMonitor/LibreHardwareMonitor/releases", UseShellExecute = true }); })); tools.Children.Add(Action("COPY DIAGNOSTICS",CopyDiagnostics)); DockPanel.SetDock(tools, Dock.Bottom); sensors.Children.Add(tools);
    sensorDetails = SensorText(410); sensors.Children.Add(sensorDetails); sensorDrawer = PanelBox(sensors); sensorDrawer.Visibility = Visibility.Collapsed; Place(stage, sensorDrawer, 345, 130, 760, 595);
   }
  }

@@ -56,7 +56,7 @@ namespace JarvisDesk {
    System.Threading.Tasks.Task.Run(delegate {
     string failure = null;
     try {
-     string cacheKey = selected.Voice + "|" + selected.Rate + "|" + selected.Volume + "|" + text; byte[] wave;
+     string cacheKey = selected.Voice + "|" + selected.VoiceLocale + "|" + selected.Rate + "|" + selected.Volume + "|" + text; byte[] wave;
      wave=null; if(!preview) lock(voiceAudioGate) voiceCache.TryGetValue(cacheKey,out wave);
      if (wave==null) {
       wave = NaturalVoice.Synthesize(selected, text, playbackCancellation.Token);
@@ -99,6 +99,7 @@ namespace JarvisDesk {
    speaking=false; suppressUntil=DateTime.UtcNow.AddMilliseconds(700);
   }
   public void OpenVoiceSettings() {
+   if(!buildingSetupPage){OpenUnifiedSettings("voice");return;}
    var dialog = new Window { Title = AssistantIdentity.CurrentName + " Voice Settings", Width = 650, Height = 755, MinWidth = 570, MinHeight = 640, Owner = this, WindowStartupLocation = WindowStartupLocation.CenterOwner, Background = Ink(3, 13, 20), Foreground = cyan, FontFamily = new FontFamily("Segoe UI") };
    dialog.Resources.Add(typeof(Button), Resources[typeof(Button)]);
    var layout = new DockPanel(); dialog.Content = layout;
@@ -111,10 +112,17 @@ namespace JarvisDesk {
    provider.Items.Add("Azure natural voices / online"); provider.Items.Add("Installed Windows voices / offline"); provider.SelectedIndex = voicePreferences.Provider == "azure" || !File.Exists(VoiceSettingsPath) ? 0 : 1; form.Children.Add(provider);
    form.Children.Add(Label("NATURAL VOICE / ACCENT", 10, cyan));
    var naturalVoice = new ComboBox { Margin = new Thickness(0, 0, 0, 13), Padding = new Thickness(6), Foreground = Brushes.Black };
-   string[] ids = { "en-US-LunaNeural", "en-US-JennyNeural", "ja-JP-NanamiNeural", "en-HK-YanNeural", "zh-CN-XiaoxiaoNeural", "en-GB-LibbyNeural", "en-GB-RyanNeural", "en-GB-ThomasNeural", "en-GB-SoniaNeural" };
-   foreach (string caption in new string[] { "Luna / American female / conversational", "Jenny / American female", "Nanami / English / Japanese accent / female", "Yan / English (Hong Kong) / female", "Xiaoxiao / English / Mandarin Chinese accent / female", "Libby / British female", "Ryan / British male", "Thomas / British male", "Sonia / British female" }) naturalVoice.Items.Add(caption);
-   naturalVoice.SelectedIndex = Math.Max(0, Array.IndexOf(ids, voicePreferences.Voice)); form.Children.Add(naturalVoice);
-   form.Children.Add(Label("For a lighter Chinese-influenced English voice, try Yan. Compare Nanami and Xiaoxiao in Preview. Accent strength is fixed by each synthetic voice.",11,muted));
+   var search=new TextBox {Padding=new Thickness(6),Margin=new Thickness(0,0,0,10),ToolTip="Search by name, language, country, gender or voice ID",MaxLength=120};form.Children.Add(Label("SEARCH VOICES",10,cyan));form.Children.Add(search);
+   var filters=new WrapPanel();var language=new ComboBox {Width=320,Padding=new Thickness(5),Margin=new Thickness(0,0,10,10),Foreground=Brushes.Black};var gender=new ComboBox {Width=135,Padding=new Thickness(5),Margin=new Thickness(0,0,0,10),Foreground=Brushes.Black};gender.ItemsSource=new[]{"All voices","Female","Male"};gender.SelectedIndex=0;filters.Children.Add(language);filters.Children.Add(gender);form.Children.Add(filters);
+   naturalVoice.MaxDropDownHeight=300;naturalVoice.IsTextSearchEnabled=false;form.Children.Add(naturalVoice);
+   var voiceSelection=Label("",11,muted);form.Children.Add(voiceSelection);var catalogStatus=Label("",11,muted);form.Children.Add(catalogStatus);var catalogActions=new WrapPanel();form.Children.Add(catalogActions);
+   var catalog=AzureVoiceCatalog.Load(dataDir,voicePreferences.Region);bool hasCatalog=catalog.Count>0;if(!hasCatalog)catalog=AzureVoiceCatalog.Starter(voicePreferences.Voice);
+   string selectedVoice=voicePreferences.Voice;Action updateSelected=delegate{};
+   Action applyFilter=delegate{var item=language.SelectedItem as ComboBoxItem;string locale=item==null?"":item.Tag as string;var visible=AzureVoiceCatalog.Filter(catalog,search.Text,locale,gender.SelectedIndex<=0?"":gender.SelectedItem as string);naturalVoice.ItemsSource=visible;naturalVoice.SelectedItem=visible.FirstOrDefault(v=>v.ShortName==selectedVoice);voiceSelection.Text="SELECTED / "+selectedVoice+(naturalVoice.SelectedItem==null?" (hidden by filters)":"");};
+   Action rebuildLanguages=delegate{string previous=(language.SelectedItem as ComboBoxItem)==null?"":(language.SelectedItem as ComboBoxItem).Tag as string;language.Items.Clear();language.Items.Add(new ComboBoxItem {Content="All languages / accents",Tag=""});foreach(var group in catalog.GroupBy(v=>v.Locale).OrderBy(g=>g.First().LocaleName??g.Key))language.Items.Add(new ComboBoxItem {Content=(group.First().LocaleName??group.Key)+" / "+group.Key,Tag=group.Key});language.SelectedItem=language.Items.Cast<ComboBoxItem>().FirstOrDefault(i=>(string)i.Tag==previous)??language.Items[0];applyFilter();};
+   rebuildLanguages();catalogStatus.Text=hasCatalog?catalog.Count+" saved Azure voices for this region. Refresh for the latest list.":"Starter voices shown. Enter your Azure region and key, then Load / Refresh for the full catalog.";
+   search.TextChanged+=delegate{applyFilter();};language.SelectionChanged+=delegate{applyFilter();};gender.SelectionChanged+=delegate{applyFilter();};naturalVoice.SelectionChanged+=delegate{var choice=naturalVoice.SelectedItem as AzureVoiceInfo;if(choice!=null){selectedVoice=choice.ShortName;voiceSelection.Text="SELECTED / "+selectedVoice;updateSelected();}};
+   form.Children.Add(Label("Voice languages do not translate the app's English text. Accent and language support vary; use Preview before saving.",11,muted));
    form.Children.Add(Label("AZURE SPEECH REGION / e.g. eastus", 10, cyan)); var region = new TextBox { Text = voicePreferences.Region, Padding = new Thickness(6), Margin = new Thickness(0, 0, 0, 12) }; form.Children.Add(region);
    form.Children.Add(Label("AZURE SPEECH KEY / saved with Windows user encryption", 10, cyan)); var key = new PasswordBox { Padding = new Thickness(6), Margin = new Thickness(0, 0, 0, 12) }; try { key.Password = voicePreferences.ReadKey(); } catch { } form.Children.Add(key);
    form.Children.Add(Label("An Azure account and Speech resource are required. Usage is billed or limited according to your Azure plan. Enter the key here, not in chat.", 11, muted));
@@ -126,10 +134,25 @@ namespace JarvisDesk {
    Action updateRate = delegate { rateText.Text = "SPEED / " + (rate.Value >= 0 ? "+" : "") + rate.Value.ToString("0") + "%"; }; rate.ValueChanged += delegate { updateRate(); }; updateRate();
    var volumeText = Label("", 11, cyan); form.Children.Add(volumeText); var volume = new Slider { Minimum = 0, Maximum = 100, TickFrequency = 5, IsSnapToTickEnabled = true, Value = voicePreferences.Volume, Margin = new Thickness(0, 0, 0, 13) }; form.Children.Add(volume);
    Action updateVolume = delegate { volumeText.Text = "VOLUME / " + volume.Value.ToString("0") + "%"; }; volume.ValueChanged += delegate { updateVolume(); }; updateVolume();
+   var hdNotice=Label("",11,muted);form.Children.Add(hdNotice);updateSelected=delegate{bool hd=provider.SelectedIndex==0 && AzureVoiceCatalog.IsHd(selectedVoice);rate.IsEnabled=!hd;volume.IsEnabled=!hd;hdNotice.Text=hd?"HD voices use their built-in pacing and volume. Speed and volume sliders apply to standard neural voices; use your Windows output volume for HD playback.":"";};provider.SelectionChanged+=delegate{updateSelected();};updateSelected();
+   bool pageClosed=false,catalogLoaded=false;int catalogGeneration=0;CancellationTokenSource catalogCancel=null;Button refreshVoices=null;
+   Action loadCatalog=async delegate{
+    string resourceRegion=region.Text.Trim().ToLowerInvariant(),resourceKey=key.Password;int generation=++catalogGeneration;
+    try{AzureVoiceCatalog.ValidateConnection(resourceRegion,resourceKey);if(catalogCancel!=null){catalogCancel.Cancel();catalogCancel.Dispose();}catalogCancel=new CancellationTokenSource();var token=catalogCancel.Token;refreshVoices.IsEnabled=false;catalogStatus.Text="Loading Azure's natural voice catalog...";
+     var loaded=await System.Threading.Tasks.Task.Run(delegate{return AzureVoiceCatalog.Fetch(resourceRegion,resourceKey,token);});
+     if(pageClosed || generation!=catalogGeneration)return;if(resourceRegion!=region.Text.Trim().ToLowerInvariant() || resourceKey!=key.Password){catalogStatus.Text="Connection fields changed. Refresh to load the matching catalog.";return;}
+     string cacheWarning="";try{AzureVoiceCatalog.Save(dataDir,resourceRegion,loaded);}catch{cacheWarning=" Catalog could not be cached on this PC.";}
+     int total=loaded.Count;if(!loaded.Any(v=>v.ShortName==selectedVoice)){loaded.Add(AzureVoiceCatalog.Starter(selectedVoice).First(v=>v.ShortName==selectedVoice));cacheWarning+=" Your saved voice was retained but is not in this region's current list; Preview it or choose another.";}
+     catalog=loaded;hasCatalog=true;catalogLoaded=true;rebuildLanguages();catalogStatus.Text=total+" Azure natural voices / "+loaded.Select(v=>v.Locale).Distinct().Count()+" languages and accents."+cacheWarning;
+    }catch(OperationCanceledException){}catch(Exception ex){if(!pageClosed && generation==catalogGeneration)catalogStatus.Text=ex.Message+" Previous voice choices were kept.";}finally{if(!pageClosed && generation==catalogGeneration)refreshVoices.IsEnabled=true;resourceKey=null;}
+   };
+   refreshVoices=Action("LOAD / REFRESH VOICES",loadCatalog);catalogActions.Children.Add(refreshVoices);
+   form.Loaded+=delegate{if(!catalogLoaded && provider.SelectedIndex==0 && !String.IsNullOrEmpty(region.Text) && key.Password.Length>0){catalogLoaded=true;loadCatalog();}};
+   dialog.Closed+=delegate{pageClosed=true;catalogGeneration++;if(catalogCancel!=null){catalogCancel.Cancel();catalogCancel.Dispose();}};
    var fallback = new CheckBox { Content = "Use Windows voice if the online voice is unavailable", IsChecked = voicePreferences.WindowsFallback, Foreground = muted, Margin = new Thickness(0, 0, 0, 15) }; form.Children.Add(fallback);
    var status = Label("", 12, cyan); footer.Children.Add(status);
    Func<VoicePreferences> draft = delegate {
-    var settings = new VoicePreferences { Provider = provider.SelectedIndex == 0 ? "azure" : "windows", Region = region.Text.Trim().ToLowerInvariant(), Voice = ids[Math.Max(0, naturalVoice.SelectedIndex)], DesktopVoice = desktop.SelectedItem as string ?? "", Rate = (int)rate.Value, Volume = (int)volume.Value, WindowsFallback = fallback.IsChecked == true };
+    var settings = new VoicePreferences { Provider = provider.SelectedIndex == 0 ? "azure" : "windows", Region = region.Text.Trim().ToLowerInvariant(), Voice = selectedVoice, VoiceLocale = selectedVoice==voicePreferences.Voice?voicePreferences.VoiceLocale:(catalog.FirstOrDefault(v=>v.ShortName==selectedVoice)==null?AzureVoiceCatalog.LocaleOf(selectedVoice):catalog.First(v=>v.ShortName==selectedVoice).Locale), DesktopVoice = desktop.SelectedItem as string ?? "", Rate = (int)rate.Value, Volume = (int)volume.Value, WindowsFallback = fallback.IsChecked == true };
     settings.SetKey(key.Password); settings.Validate(); return settings;
    };
    var buttons = new WrapPanel();
@@ -142,7 +165,7 @@ namespace JarvisDesk {
    buttons.Children.Add(Action("SAVE VOICE", delegate { try { var settings = draft(); settings.Save(VoiceSettingsPath); voicePreferences = settings; UpdateVoiceLabel(); Log("Voice preferences saved."); dialog.Close(); } catch (Exception ex) { status.Text = ex.Message; } }));
    buttons.Children.Add(Action("CANCEL", dialog.Close)); footer.Children.Add(buttons);
    var help = Action("AZURE SETUP HELP", delegate { System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo { FileName = "https://learn.microsoft.com/en-us/azure/ai-services/speech-service/get-started-text-to-speech", UseShellExecute = true }); }); footer.Children.Add(help);
-   dialog.ShowDialog(); key.Clear();
+   dialog.Closed+=delegate{key.Clear();}; PresentSetupDialog(dialog);
   }
  }
 }

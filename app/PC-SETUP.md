@@ -5,7 +5,7 @@ This is a Windows desktop application. The package targets **Windows 10/11 x64**
 1. Copy **Desktop-Assistant-Setup.exe** to the other PC and run it. The installer is unsigned, so Windows may show a publisher/SmartScreen prompt. Alternatively, extract **Desktop-Assistant-Windows.zip** and run `Skynet\Install.cmd`.
 2. Choose one of that PC's detected monitors. Leave Interactive desktop selected for background mode, or use normal window mode. Windows startup is optional.
 3. The app discovers local Start-menu shortcuts and common Windows applications. Open **APP MAPPINGS** to review trusted executable/shortcut paths and add missing apps. App paths are discovered on each PC rather than copied from the development computer.
-4. Open **COLORS / SETUP** to choose any RGB colors for the HUD, rings and core. Select **PC SETUP** for local readiness information.
+4. Open **SETTINGS** to choose any RGB colors for the HUD, rings and core. Select **PC SETUP** for local readiness information.
 5. For voice input, enable microphone access for desktop apps in Windows and install English speech recognition if it is missing. Choose an installed microphone in Windows sound settings. Manual controls and typed chat remain available without speech recognition.
 6. Windows synthetic voices work offline when installed. For an online voice, configure your own service and credentials through **VOICE SETTINGS**. Sign in to ChatGPT separately on each PC. Calendar and commute configuration are also private to that Windows account.
 7. For temperatures, GPU usage and fan/pump RPM, install a compatible Libre Hardware Monitor build, run it with the permissions its sensors require, and enable its local web server on port 8085. Missing or unsupported sensors remain **Unavailable**. Generic Fan # labels do not establish radiator fan or pump wiring. CPU/RAM usage uses native Windows counters and does not require this monitor service.
@@ -21,3 +21,5 @@ Official prerequisites:
 - [Install .NET Framework](https://learn.microsoft.com/en-us/dotnet/framework/install/)
 - [Microsoft WebView2 Runtime](https://developer.microsoft.com/en-us/microsoft-edge/webview2/)
 - [Libre Hardware Monitor](https://github.com/LibreHardwareMonitor/LibreHardwareMonitor)
+
+Fan and pump channels reporting 0 RPM are hidden in the display and reappear automatically when they report a positive speed. Raw sensor values are retained internally.

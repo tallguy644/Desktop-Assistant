@@ -27,20 +27,19 @@ namespace JarvisDesk {
  public partial class Desk {
   ChatNamePreferences chatNamePreferences=new ChatNamePreferences();
   TextBlock chatHeading;
-  Button chatNameButton,chatNavigationButton;
+  Button chatNameButton;
   string ChatNamePath { get { return Path.Combine(dataDir,"chat-name.json"); } }
   string ChatDisplayName { get { return chatNamePreferences.Name; } }
   string ChatDisplayUpper { get { return ChatDisplayName.ToUpperInvariant(); } }
   void ApplyChatName() {
    chatHeading.Text=ChatDisplayUpper+" / CONVERSATION";chatHeading.ToolTip=ChatDisplayName;
    chatHeading.TextWrapping=TextWrapping.NoWrap;chatHeading.TextTrimming=TextTrimming.CharacterEllipsis;
-   chatNavigationButton.Content=new TextBlock { Text=ChatDisplayUpper+" / CHAT",TextWrapping=TextWrapping.NoWrap,TextTrimming=TextTrimming.CharacterEllipsis,MaxWidth=220 };
-   chatNavigationButton.Width=240;chatNavigationButton.ToolTip=ChatDisplayName+" / conversation";
    chatTranscript.ToolTip="Your conversation with "+ChatDisplayName+". Questions and recent chat context are sent to OpenAI.";
    PaintChatHistory();
   }
   public void OpenChatNameSettings() {
-   if(chatBusy || questionListening) { chatStatus.Text="Finish or cancel the current question before changing the chat name.";return; }
+   if(!buildingSetupPage){OpenUnifiedSettings("chat-name");return;}
+   if(chatBusy || questionListening) { chatStatus.Text="Finish or cancel the current question before changing the chat name.";setupContent.Content=Label(chatStatus.Text,13,cyan);return; }
    var dialog=new Window { Title="Name your chat",Owner=this,Width=530,Height=335,ResizeMode=ResizeMode.NoResize,WindowStartupLocation=WindowStartupLocation.CenterOwner,Background=Ink(3,13,20),Foreground=cyan };
    dialog.Resources.Add(typeof(Button),Resources[typeof(Button)]);
    var form=new StackPanel { Margin=new Thickness(24) };dialog.Content=form;
@@ -53,7 +52,7 @@ namespace JarvisDesk {
     try { var value=new ChatNamePreferences { Name=input.Text };value.Save(ChatNamePath);chatNamePreferences=value;ApplyChatName();chatStatus.Text="Chat name saved.";dialog.Close(); }
     catch(Exception ex) { status.Text=ex.Message; }
    }));buttons.Children.Add(Action("CANCEL",dialog.Close));
-   dialog.Loaded+=delegate { input.Focus();input.SelectAll(); };dialog.ShowDialog();
+   form.Loaded+=delegate { input.Focus();input.SelectAll(); };PresentSetupDialog(dialog);
   }
  }
 }

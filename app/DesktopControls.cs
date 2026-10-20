@@ -137,6 +137,7 @@ namespace JarvisDesk {
    if(desktopAttachment!=null) DesktopUI(delegate{ConcealDesktopBackend();if(!desktopAttachment.Healthy){DisableDesktop(true);throw new IOException("The Windows desktop host changed. Window mode has been restored; you can enable desktop mode again from the tray.");}ApplyHudTaskbar();desktopAttachment.Place(DesktopArea(DesktopTarget()));});
   }
   public void OpenDesktopSettings(){
+   if(!buildingSetupPage){OpenUnifiedSettings("desktop");return;}
    var dialog=new Window {Title="Interactive desktop settings",Owner=this,Width=660,Height=600,MinWidth=590,MinHeight=460,WindowStartupLocation=WindowStartupLocation.CenterScreen,Background=Ink(3,13,20),Foreground=cyan};dialog.Resources.Add(typeof(Button),Resources[typeof(Button)]);
    var form=new StackPanel {Margin=new Thickness(24)};dialog.Content=new ScrollViewer {Content=form,VerticalScrollBarVisibility=ScrollBarVisibility.Auto};
    form.Children.Add(Label("INTERACTIVE DESKTOP",23,cyan));form.Children.Add(Label("Use the HUD as a working desktop on one monitor. It covers icons on that monitor and stays behind regular apps. Voice, chat, calendar and sensors continue running.",12,muted));
@@ -151,7 +152,7 @@ namespace JarvisDesk {
     bool beforeStartup=StartupEnabled();var previous=new DesktopPreferences {Enabled=desktopPreferences.Enabled,Monitor=desktopPreferences.Monitor,HideHudTaskbar=desktopPreferences.HideHudTaskbar};
     try{var choice=monitor.SelectedItem as DesktopMonitor;if(choice==null)throw new ArgumentException("Choose a monitor first.");desktopPreferences.Monitor=choice.Device;desktopPreferences.HideHudTaskbar=taskbar.IsChecked==true;hudTaskbarFailed=false;if(enabled.IsChecked==true)EnableDesktop(false);else DisableDesktop(false);SetDesktopStartup(startup.IsChecked==true);desktopPreferences.Enabled=enabled.IsChecked==true;desktopPreferences.Save(DesktopSettingsPath);desktopError="";WriteDesktopStatus();if(hudTaskbarError.Length>0){status.Text=hudTaskbarError;return;}dialog.Close();}
     catch(Exception ex){try{SetDesktopStartup(beforeStartup);desktopPreferences=previous;if(previous.Enabled)EnableDesktop(false);else DisableDesktop(false);}catch{}status.Text=ex.Message;}
-   }));buttons.Children.Add(Action("CANCEL",dialog.Close));dialog.ShowDialog();
+   }));buttons.Children.Add(Action("CANCEL",dialog.Close));PresentSetupDialog(dialog);
   }
   void WriteDesktopStatus(){
    if(!desktopIntegrating)return;try{var taskbar=hudTaskbar;string json=ChatJson.Serializer().Serialize(new {ProcessId=System.Diagnostics.Process.GetCurrentProcess().Id,Active=IsDesktop,Healthy=IsDesktop && desktopAttachment.Healthy,Monitor=desktopPreferences.Monitor,Error=desktopError,TaskbarAutoHide=taskbar!=null,TaskbarHidden=taskbar!=null && taskbar.Hidden,TaskbarError=hudTaskbarError,TaskbarPollUtc=taskbar==null?"":taskbar.LastPollUtc.ToString("o"),TaskbarDirectRevealUtc=taskbar==null?"":taskbar.LastDirectRevealUtc.ToString("o"),TaskbarDirectReveals=taskbar==null?0:taskbar.DirectRevealCount});string path=Path.Combine(dataDir,"desktop-status.json"),temp=path+".tmp";File.WriteAllText(temp,json);if(File.Exists(path))File.Replace(temp,path,null);else File.Move(temp,path);}catch{}

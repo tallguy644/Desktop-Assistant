@@ -1,12 +1,16 @@
 # Set up ASSISTANT's natural voice
 
-The app supports **Yan / English (Hong Kong)** for a lighter Chinese-influenced English option, **Nanami / English / Japanese accent**, and **Xiaoxiao / English / Mandarin Chinese accent**, alongside Luna, Jenny, and British voices. Accent strength is fixed by the synthetic voice; compare them with PREVIEW. Your existing **-15% speed**, volume, and Azure connection are retained. These are original synthetic voices. New installations use Windows speech until Azure setup is complete.
+Open **SETUP > Voice & speech** for the full Azure natural-voice catalog available to your Speech region. Use search and the language/accent and gender filters, select a voice, then **PREVIEW** and **SAVE VOICE**. **LOAD / REFRESH VOICES** retrieves Microsoft's current catalog using your existing private Speech key and region. Your current voice, speed, volume and fallback settings remain unchanged until you save.
+
+Voice metadata is cached locally per region for browsing when offline; synthesis still needs internet. No key is stored in the catalog cache. If Azure is unavailable, the saved catalog and current selection remain available. A small starter list is shown when no catalog has been downloaded yet.
+
+Standard neural voices use the speed and volume sliders. **Dragon HD / HD Omni voices use their built-in pacing and volume**; those sliders are disabled for HD voices because Azure does not support their prosody controls. Use Windows output volume for HD playback. Availability, preview voices and provider limits vary by region/account. Voices do not translate English app announcements; preview language/accent compatibility before saving. These are synthetic voices, with no claim of reproducing an actor's voice.
 
 ## 1. Create your Azure Speech resource
 
 1. Open the [Microsoft Azure portal](https://portal.azure.com/) and sign in with your Microsoft account. If you do not have an Azure subscription, follow the account/subscription setup offered there. Azure may require payment verification; check the terms shown during signup.
 2. Search for **Speech** in the portal. Create Microsoft's **Speech service** resource (Azure's wording may also mention Foundry). Use a Speech resource with a **resource key and region**; you do not need a custom voice model or a voice-cloning project.
-3. Select your subscription. Create a resource group such as **Assistant**, choose an available region such as **East US**, and choose a unique resource name such as **skynet-voice-chris** (use another name if taken).
+3. Select your subscription. Create a resource group such as **Assistant**, choose an available region such as **East US**, and choose a unique resource name such as **desktop-voice-resource** (use another name if taken).
 4. For pricing, choose **Free F0** if offered and suitable for you. Review its limits. If only a paid tier is available, review the price before choosing it. This app does not create resources or change your billing plan for you. See [Azure Speech pricing](https://azure.microsoft.com/en-us/pricing/details/cognitive-services/speech-services/) and [Speech quotas and limits](https://learn.microsoft.com/en-us/azure/ai-services/speech-service/speech-services-quotas-and-limits).
 5. Choose **Review + create**, then **Create**. Wait for deployment and choose **Go to resource**.
 6. Open **Keys and Endpoint** under the resource's management section. You need **Key 1** (Key 2 also works) and the **Location/Region code**, for example **eastus**. The key and region must belong to the same resource. Do not paste the key into chat, screenshots, or source files.
@@ -15,8 +19,8 @@ Microsoft's [text-to-speech quickstart](https://learn.microsoft.com/en-us/azure/
 
 ## 2. Enter the details privately in ASSISTANT
 
-1. Open **Assistant** and click **VOICE SETTINGS** in the left column.
-2. Select **Azure natural voices / online** and **Luna / American female / conversational**.
+1. Open **Assistant** and open **SETUP > Voice & speech**.
+2. Select **Azure natural voices / online**. Enter the region and key, load the catalog, and choose your preferred voice.
 3. In **AZURE SPEECH REGION**, enter the short code such as **eastus**, not “East US” and not an endpoint URL. Use your resource's actual code.
 4. Paste **Key 1** into the masked **AZURE SPEECH KEY** box.
 5. Click **PREVIEW**. You should hear: “Assistant online.” Preview makes a real Azure request and may count toward usage.

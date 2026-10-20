@@ -48,11 +48,12 @@ namespace JarvisDesk {
    Closing+=delegate { if(mapsBrowser!=null) mapsBrowser.DisposeBrowser(); };
   }
   void OpenCommutePanel() {
+   if(!buildingSetupPage){OpenUnifiedSettings("commute");return;}
    CloseScreenPanel();
    commuteOrigin.Password=commutePreferences.Origin;commuteDestination.Password=commutePreferences.Destination;commuteTitle.Text=commutePreferences.WorkTitle;commuteBuffer.Text=commutePreferences.ArrivalBufferMinutes.ToString(CultureInfo.InvariantCulture);commuteLead.Text=commutePreferences.LeadMinutes.ToString(CultureInfo.InvariantCulture);commuteEnabled.IsChecked=commutePreferences.Enabled || !File.Exists(CommutePath);
    commuteStatus.Text=mapsMessage.Length>0?mapsMessage:"Enter your starting address here, then Save & Check. Your calendar must be connected.";appDrawer.Visibility=Visibility.Collapsed;sensorDrawer.Visibility=Visibility.Collapsed;commuteDrawer.Visibility=Visibility.Visible;
   }
-  void CloseCommutePanel() { commuteOrigin.Clear();commuteDestination.Clear();commuteDrawer.Visibility=Visibility.Collapsed; }
+  void CloseCommutePanel() { if(InSetup("commute") && !buildingSetupPage){setupWindow.Close();return;} commuteOrigin.Clear();commuteDestination.Clear();commuteDrawer.Visibility=Visibility.Collapsed; }
   void SaveCommute() {
    int buffer,lead;if(!Int32.TryParse(commuteBuffer.Text,NumberStyles.None,CultureInfo.InvariantCulture,out buffer) || !Int32.TryParse(commuteLead.Text,NumberStyles.None,CultureInfo.InvariantCulture,out lead)) { commuteStatus.Text="Enter whole minutes for arrival buffer and heads-up.";return; }
    try {
