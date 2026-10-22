@@ -4,6 +4,7 @@ The **Syra Companion** Android app lets you control Syra from your phone:
 
 - **PC tab** – live CPU/RAM/GPU load, CPU/GPU temperatures (°F), fan speeds, and **Wake** / **Off** buttons for your screens.
 - **Media tab** – play/pause, next/previous and PC volume for Spotify, YouTube in Chrome or Edge, and anything else that responds to keyboard media keys, plus what's playing now.
+- **Colors (⋮ menu)** – Syra's HUD accent, reactor rings and core colors stay in sync both ways: change them in Syra Setup and the phone follows within a few seconds; change them on the phone and Syra updates instantly. Same presets as the PC.
 - **Apps tab** – tap any of your Syra app mappings to open it on the PC.
 - **Ask tab** – type or speak a question (answered by the ChatGPT account connected in Syra), or tap **Agenda** / **Commute**. Optionally have the answer spoken on the PC too.
 
@@ -53,7 +54,7 @@ The phone then appears under **Paired phones**. Pair up to 8 phones.
 - Only home-network (10.x, 172.16–31.x, 192.168.x) and Tailscale (100.64–127.x) addresses are accepted; public internet addresses are refused even if a port is forwarded.
 - Each phone gets its own random 256-bit token. Syra stores only a hash of it, protected with Windows data protection; the phone encrypts it with an Android Keystore key.
 - Pairing codes work once, expire after three minutes, and are cancelled after five wrong guesses. Ten failed attempts from one address lock it out for ten minutes.
-- The phone can only do what's listed above: launch **mapped** apps, control screens, press media/volume keys, read status/agenda/commute/now playing, and ask questions. It can't run commands or open files.
+- The phone can only do what's listed above: launch **mapped** apps, control screens, press media/volume keys, change Syra's colors, read status/agenda/commute/now playing, and ask questions. It can't run commands or open files.
 - Traffic is HTTP. Over Tailscale it is encrypted by Tailscale; on home Wi-Fi it stays on your local network. Don't use the home-Wi-Fi address on networks you don't trust—use Tailscale instead.
 
 ## Building the Android app yourself
@@ -75,5 +76,6 @@ All requests except `hello` and `pair` need `Authorization: Bearer <token>`. JSO
 | POST | `/api/ask` | `{question, speak}` | `{answer}` |
 | GET | `/api/agenda` | – | `{text, offline, items:[{time,title,location,allDay}]}` |
 | GET | `/api/commute` | – | `{text}` |
+| POST | `/api/theme` | `{accent, rings, core}` (#RRGGBB) | `{message}` |
 | POST | `/api/media` | `{action:"playpause"\|"next"\|"previous"\|"volup"\|"voldown"\|"mute"}` | `{message}` |
 | POST | `/api/unpair` | – | `{ok:true}` |

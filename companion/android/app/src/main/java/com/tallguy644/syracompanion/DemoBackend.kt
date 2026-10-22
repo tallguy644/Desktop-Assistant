@@ -18,6 +18,8 @@ interface SyraBackend {
     suspend fun unpair(): JSONObject
     /** playpause, next, previous, volup, voldown, mute */
     suspend fun media(action: String): String
+    /** Saves Syra's three colors on the PC. */
+    suspend fun setTheme(colors: SyraColors): String
 }
 
 /** Sample data so the app can be explored without a PC. Nothing leaves the phone. */
@@ -25,6 +27,7 @@ class DemoBackend : SyraBackend {
     private var tick = 0
     private var screensOff = false
     private var playing = true
+    private var theme = SyraColors.Original
     private var track = 0
     private val tracks = listOf(
         "Spotify" to "Neon Skyline - Midnight Circuit",
@@ -58,6 +61,7 @@ class DemoBackend : SyraBackend {
             .put("chat", JSONObject().put("ready", true).put("busy", false))
             .put("calendar", true)
             .put("commute", true)
+            .put("theme", JSONObject().put("accent", theme.accent).put("rings", theme.rings).put("core", theme.core))
             .put("nowPlaying", JSONObject().put("source", tracks[track].first).put("title", tracks[track].second).put("playing", playing))
     }
 
@@ -97,6 +101,8 @@ class DemoBackend : SyraBackend {
     }
 
     override suspend fun unpair(): JSONObject = JSONObject()
+
+    override suspend fun setTheme(colors: SyraColors): String { delay(200); theme = colors; return "Demo: colors would update on your PC too." }
 
     override suspend fun media(action: String): String {
         delay(150)

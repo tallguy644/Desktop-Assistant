@@ -196,7 +196,7 @@ fun Reactor(diameter: Dp, active: Boolean, modifier: Modifier = Modifier, center
             for (i in 0 until 72) {
                 val a = Math.toRadians(i * 5.0)
                 val inner = if (i % 6 == 0) r * 0.88f else r * 0.92f
-                drawLine(Syra.Cyan.copy(alpha = if (i % 6 == 0) 0.8f else 0.3f),
+                drawLine(Syra.Rings.copy(alpha = if (i % 6 == 0) 0.8f else 0.3f),
                     Offset(c.x + cos(a).toFloat() * inner, c.y + sin(a).toFloat() * inner),
                     Offset(c.x + cos(a).toFloat() * r * 0.97f, c.y + sin(a).toFloat() * r * 0.97f), 1.5f)
             }
@@ -209,12 +209,12 @@ fun Reactor(diameter: Dp, active: Boolean, modifier: Modifier = Modifier, center
                 drawLine(Syra.Cyan.copy(alpha = 0.7f), c, Offset(c.x + r * 0.95f, c.y), 1.5f)
             }
             rotate(slow, c) {
-                ring(r * 0.80f, 3.dp.toPx(), Syra.Cyan.copy(alpha = 0.85f), floatArrayOf(r * 0.9f, r * 0.25f))
+                ring(r * 0.80f, 3.dp.toPx(), Syra.Rings.copy(alpha = 0.85f), floatArrayOf(r * 0.9f, r * 0.25f))
                 ring(r * 0.72f, 1.dp.toPx(), Syra.Teal, floatArrayOf(6f, 10f))
             }
             rotate(fast, c) {
                 ring(r * 0.62f, 6.dp.toPx(), Syra.Teal.copy(alpha = 0.9f), floatArrayOf(r * 0.35f, r * 0.18f))
-                ring(r * 0.52f, 1.5.dp.toPx(), Syra.Cyan.copy(alpha = 0.6f), floatArrayOf(r * 1.4f, r * 0.4f))
+                ring(r * 0.52f, 1.5.dp.toPx(), Syra.Rings.copy(alpha = 0.6f), floatArrayOf(r * 1.4f, r * 0.4f))
             }
             // red core
             drawCircle(Brush.radialGradient(listOf(Syra.Core.copy(alpha = 0.55f * beat), Color.Transparent), c, r * 0.48f), r * 0.48f)

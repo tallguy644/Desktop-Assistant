@@ -55,6 +55,12 @@ namespace JarvisDesk {
      NowPlayingInfo playing = null; try { playing = NowPlayingReader.Read(); } catch { }
      return OnUi(delegate { var status = CompanionStatus(); status["nowPlaying"] = playing == null ? null : new Dictionary<string, object> { { "source", playing.Source }, { "title", playing.Title ?? "" }, { "playing", playing.Playing } }; return CompanionResponse.Ok(status); });
     }
+    case "POST /api/theme": {
+     var body = request.Json(); object a, r, c; body.TryGetValue("accent", out a); body.TryGetValue("rings", out r); body.TryGetValue("core", out c);
+     var colors = new ThemePreferences { Accent = a as string, Rings = r as string, Core = c as string };
+     try { colors.Validate(); } catch (ArgumentException ex) { return CompanionResponse.Error(400, ex.Message); }
+     return OnUi(delegate { return CompanionTheme(colors); });
+    }
     case "POST /api/media": {
      string action = request.Text("action");
      if (!MediaKeys.Known(action)) return CompanionResponse.Error(400, "Use playpause, next, previous, volup, voldown or mute.");
@@ -98,8 +104,18 @@ namespace JarvisDesk {
     { "stats", stats },
     { "screens", new Dictionary<string, object> { { "enabled", screenPreferences.Enabled }, { "active", screenController != null && screenController.Active }, { "off", screenController != null && screenController.DisplaysOff } } },
     { "chat", new Dictionary<string, object> { { "ready", chatReady }, { "busy", chatBusy } } },
-    { "calendar", calendarUrl.Length > 0 }, { "commute", commutePreferences != null && commutePreferences.Enabled }
+    { "calendar", calendarUrl.Length > 0 }, { "commute", commutePreferences != null && commutePreferences.Enabled },
+    { "theme", new Dictionary<string, object> { { "accent", themePreferences.Accent }, { "rings", themePreferences.Rings }, { "core", themePreferences.Core } } }
    };
+  }
+  // Colors chosen on the phone: saved exactly like SAVE COLORS in Setup, applied live to the HUD.
+  CompanionResponse CompanionTheme(ThemePreferences colors) {
+   bool reopen = setupWindow != null && setupSection == "colors";
+   if (reopen) ReleaseSetupSection(); // an open, unsaved color page would otherwise restore its old colors when it closes
+   try { colors.Save(ThemePath); } catch { return CompanionResponse.Error(500, "Colors could not be saved on the PC."); }
+   themePalette.Apply(colors); themePreferences = colors.Copy(); Log("Colors changed from phone.");
+   if (reopen) SelectSetupSection("colors");
+   return CompanionResponse.Ok(new Dictionary<string, object> { { "message", "Colors updated on your PC." } });
   }
   CompanionResponse CompanionLaunch(string name) {
    var map = maps.FirstOrDefault(m => m.Name == name);

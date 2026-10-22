@@ -66,6 +66,10 @@ public static class CompanionTests {
    Check(np.Source == "Spotify" && np.Title == "Artist - Song", "Playing Spotify wins over a YouTube tab");
    Check(NowPlayingReader.FromWindows(new[] { w("chrome", "Inbox - Gmail"), w("notepad", "x - YouTube") }) == null, "Other tabs and apps are ignored");
    Check(MediaKeys.Known("playpause") && MediaKeys.Known("volup") && !MediaKeys.Known("shutdown") && !MediaKeys.Known(null), "Only media actions are accepted");
+   var theme = new ThemePreferences { Accent = "c79bff", Rings = "#BFAAFF", Core = "#ff64ad" }; theme.Validate();
+   Check(theme.Accent == "#C79BFF" && theme.Core == "#FF64AD", "Phone colors are normalized like Syra's own color settings");
+   bool rejected = false; try { new ThemePreferences { Accent = "blue", Rings = "#BFAAFF", Core = "#FF64AD" }.Validate(); } catch (ArgumentException) { rejected = true; }
+   Check(rejected, "Invalid phone colors are refused");
    Console.WriteLine("All companion checks passed."); return 0;
   } catch (Exception ex) { Console.WriteLine("FAIL " + ex); return 1; }
  }

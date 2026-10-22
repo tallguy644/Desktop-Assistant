@@ -78,6 +78,7 @@ private enum class Tab(val label: String, val icon: ImageVector) {
 private fun MainScreen(vm: CompanionViewModel) {
     var tab by rememberSaveable { mutableIntStateOf(0) }
     var menu by remember { mutableStateOf(false) }
+    var colors by remember { mutableStateOf(false) }
     val snackbar = remember { SnackbarHostState() }
 
     // Poll the PC only while the app is visible.
@@ -93,6 +94,7 @@ private fun MainScreen(vm: CompanionViewModel) {
         owner.lifecycle.addObserver(observer)
         onDispose { owner.lifecycle.removeObserver(observer); vm.stopPolling() }
     }
+    if (colors) ColorEditor(vm) { colors = false }
     LaunchedEffect(vm.toast) {
         vm.toast?.let { snackbar.showSnackbar(it); vm.toast = null }
     }
@@ -115,6 +117,7 @@ private fun MainScreen(vm: CompanionViewModel) {
                     Box {
                         IconButton(onClick = { menu = true }) { Icon(Icons.Filled.MoreVert, "Menu") }
                         DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
+                            DropdownMenuItem(text = { Text("Colors") }, onClick = { menu = false; colors = true })
                             DropdownMenuItem(text = { Text("Refresh apps") }, onClick = { menu = false; vm.refreshApps() })
                             DropdownMenuItem(text = { Text(if (vm.demo) "Exit demo" else "Unpair this phone") }, onClick = { menu = false; vm.unpair() })
                         }

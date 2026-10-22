@@ -17,6 +17,13 @@ data class AgendaEntry(val time: String, val title: String, val location: String
 
 class CompanionViewModel(app: Application) : AndroidViewModel(app) {
     private val store = PairingStore(app)
+    private val themePrefs = app.getSharedPreferences("theme", android.content.Context.MODE_PRIVATE)
+    /** Ignore the PC's colors briefly after a change on the phone, so a poll can't undo it mid-flight. */
+    private var themeHoldUntil = 0L
+
+    init {
+        SyraColors.of(themePrefs.getString("accent", null), themePrefs.getString("rings", null), themePrefs.getString("core", null))?.let { Syra.apply(it) }
+    }
 
     var pairing by mutableStateOf(store.load())
         private set
@@ -144,6 +151,7 @@ class CompanionViewModel(app: Application) : AndroidViewModel(app) {
                 val api = api() ?: break
                 try {
                     val s = PcStatus.from(api.status())
+                    syncThemeFrom(s.theme)
                     status = s; connectionError = null
                     record(cpuHistory, s.cpu); record(gpuHistory, s.gpu)
                 } catch (e: ApiException) {
@@ -176,6 +184,28 @@ class CompanionViewModel(app: Application) : AndroidViewModel(app) {
 
     fun launch(name: String) = runAction { it.launch(name) }
     fun screens(action: String) = runAction { it.screens(action) }
+
+    // ---------- Colors (kept in sync with Syra on the PC) ----------
+    private fun saveTheme(c: SyraColors) =
+        themePrefs.edit().putString("accent", c.accent).putString("rings", c.rings).putString("core", c.core).apply()
+
+    private fun syncThemeFrom(theme: SyraColors?) {
+        if (theme == null || System.currentTimeMillis() < themeHoldUntil || theme == Syra.colors) return
+        Syra.apply(theme); saveTheme(theme)
+    }
+
+    /** Shows colors on the phone only, while choosing. */
+    fun previewColors(c: SyraColors) = Syra.apply(c)
+
+    /** Applies colors on the phone and sends them to Syra so the PC changes too. */
+    fun setColors(c: SyraColors) {
+        Syra.apply(c); saveTheme(c)
+        themeHoldUntil = System.currentTimeMillis() + 6_000
+        val api = api() ?: return
+        viewModelScope.launch {
+            try { toast = api.setTheme(c).ifBlank { "Colors updated on your PC." } } catch (e: Exception) { handle(e) }
+        }
+    }
 
     /** Media keys on the PC; refreshes status right away so now-playing updates. */
     fun media(action: String) {

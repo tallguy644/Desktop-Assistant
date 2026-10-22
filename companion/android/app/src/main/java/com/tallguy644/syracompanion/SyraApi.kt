@@ -71,6 +71,8 @@ class SyraApi(host: String, private val port: Int, private val token: String?) :
     override suspend fun agenda(): JSONObject = call("GET", "/api/agenda", timeoutMs = 25_000)
     override suspend fun commute(): String = call("GET", "/api/commute", timeoutMs = 40_000).optString("text")
     override suspend fun unpair(): JSONObject = call("POST", "/api/unpair")
+    override suspend fun setTheme(colors: SyraColors): String =
+        call("POST", "/api/theme", JSONObject().put("accent", colors.accent).put("rings", colors.rings).put("core", colors.core)).optString("message")
     override suspend fun media(action: String): String = call("POST", "/api/media", JSONObject().put("action", action)).optString("message")
 }
 
@@ -99,6 +101,7 @@ data class PcStatus(
     val calendar: Boolean,
     val commute: Boolean,
     val nowPlaying: NowPlaying?,
+    val theme: SyraColors?,
 ) {
     companion object {
         private fun JSONObject.num(key: String): Double? = if (isNull(key) || !has(key)) null else optDouble(key).takeIf { !it.isNaN() }
@@ -125,6 +128,7 @@ data class PcStatus(
                 chatReady = chat.optBoolean("ready"),
                 calendar = json.optBoolean("calendar"),
                 commute = json.optBoolean("commute"),
+                theme = json.optJSONObject("theme")?.let { SyraColors.of(it.optString("accent"), it.optString("rings"), it.optString("core")) },
                 nowPlaying = json.optJSONObject("nowPlaying")?.let { NowPlaying(it.optString("source"), it.optString("title"), it.optBoolean("playing")) },
             )
         }
