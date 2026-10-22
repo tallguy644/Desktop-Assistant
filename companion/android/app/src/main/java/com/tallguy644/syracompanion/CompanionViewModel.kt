@@ -84,11 +84,11 @@ class CompanionViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     init {
-        // For now the app opens in demo mode until a PC is paired. Exit demo from the menu to pair.
+        // Set START_IN_DEMO to open straight into the demo when no PC is paired. Normally the app opens on pairing, with TRY DEMO there.
         if (START_IN_DEMO && pairing == null) startDemo()
     }
 
-    companion object { const val START_IN_DEMO = true; const val HISTORY = 40 }
+    companion object { const val START_IN_DEMO = false; const val HISTORY = 40 }
 
     private fun resetSession() {
         pairing = null; status = null; connectionError = null; apps.clear(); answer = null; agenda.clear(); question = ""

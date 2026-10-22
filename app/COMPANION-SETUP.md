@@ -10,6 +10,8 @@ The **Syra Companion** Android app lets you control Syra from your phone:
 
 The companion is **off by default** and only paired phones can use it.
 
+**Demo mode:** tap **TRY DEMO** on the pairing screen to explore every tab with sample data, no PC needed. Tap **CONNECT TO MY PC** (or ⋮ → Connect to my PC) to leave the demo and pair.
+
 ## 1. Get the builds
 
 Both are built automatically by GitHub Actions (the **Phone companion** workflow):

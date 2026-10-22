@@ -119,7 +119,7 @@ private fun MainScreen(vm: CompanionViewModel) {
                         DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
                             DropdownMenuItem(text = { Text("Colors") }, onClick = { menu = false; colors = true })
                             DropdownMenuItem(text = { Text("Refresh apps") }, onClick = { menu = false; vm.refreshApps() })
-                            DropdownMenuItem(text = { Text(if (vm.demo) "Exit demo" else "Unpair this phone") }, onClick = { menu = false; vm.unpair() })
+                            DropdownMenuItem(text = { Text(if (vm.demo) "Connect to my PC" else "Unpair this phone") }, onClick = { menu = false; vm.unpair() })
                         }
                     }
                 },

@@ -159,7 +159,10 @@ fun DashboardTab(vm: CompanionViewModel) {
         verticalArrangement = Arrangement.spacedBy(14.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        if (vm.demo) Banner("DEMO MODE — sample data, nothing is sent to a PC. Exit from the ⋮ menu.", Syra.Cyan)
+        if (vm.demo) {
+            Banner("DEMO MODE — sample data, nothing is sent to a PC.", Syra.Cyan)
+            HudButton("CONNECT TO MY PC", { vm.unpair() }, Modifier.fillMaxWidth())
+        }
         vm.connectionError?.let { Banner(it, Syra.Core) }
         if (s != null) Ticker(
             "CPU ${s.cpu?.toInt() ?: "--"}%  ▲  GPU ${s.gpu?.toInt() ?: "--"}%  ▲  RAM ${s.ram?.toInt() ?: "--"}%  ▲  CORE ${s.cpuTempF?.toInt() ?: "--"}°F  ▲  " +
