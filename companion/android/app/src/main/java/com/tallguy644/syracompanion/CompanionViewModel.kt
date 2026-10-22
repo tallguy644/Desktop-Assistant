@@ -154,7 +154,7 @@ class CompanionViewModel(app: Application) : AndroidViewModel(app) {
     fun launch(name: String) = runAction { it.launch(name) }
     fun screens(action: String) = runAction { it.screens(action) }
 
-    private fun runAction(block: suspend (SyraApi) -> String) {
+    private fun runAction(block: suspend (SyraBackend) -> String) {
         val api = api() ?: return
         viewModelScope.launch {
             try { toast = block(api).ifBlank { "Done." } } catch (e: Exception) { handle(e) }
