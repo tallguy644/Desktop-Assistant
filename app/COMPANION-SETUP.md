@@ -16,7 +16,7 @@ The companion is **off by default** and only paired phones can use it.
 
 Both are built automatically by GitHub Actions (the **Phone companion** workflow):
 
-- **Syra with companion support** – download the `Syra-with-companion` artifact and replace `Skynet.exe` in your install folder, or run `app\Build.cmd` yourself.
+- **Syra with companion support** – download the `Syra-with-companion` artifact and put its `Syra.exe` in your install folder (it replaces the older `Skynet.exe` — delete that one, or run `Install.cmd` to swap it automatically), or run `app\Build.cmd` yourself.
 - **Android app** – download the `SyraCompanion-apk` artifact on your phone, unzip it, and open `SyraCompanion.apk`. Android will ask you to allow installs from your browser or file manager the first time.
 
 ## 2. Install Tailscale (to connect from anywhere)

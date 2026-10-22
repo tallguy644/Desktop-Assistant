@@ -1,5 +1,5 @@
 $ErrorActionPreference = 'Stop'
-$assemblyPath = Join-Path $PSScriptRoot 'Skynet.exe'
+$assemblyPath = Join-Path $PSScriptRoot 'Syra.exe'
 $null = [Reflection.Assembly]::LoadFrom($assemblyPath)
 $testDirectory = Join-Path ([IO.Path]::GetTempPath()) ('SkynetChatTests-' + [guid]::NewGuid().ToString('N'))
 try {

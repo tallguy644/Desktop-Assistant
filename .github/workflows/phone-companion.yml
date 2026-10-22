@@ -69,5 +69,5 @@ jobs:
         with:
           name: Syra-with-companion
           path: |
-            app/Skynet.exe
+            app/Syra.exe
             app/TaskbarRecovery.exe

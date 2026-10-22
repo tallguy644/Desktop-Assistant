@@ -1,6 +1,6 @@
 # Bundled calendar libraries
 
-These unmodified assemblies are distributed beside Skynet.exe for .NET Framework 4.8 compatibility. Packages were downloaded from the official NuGet v3 flat-container service and pinned to these versions. Keep the Licenses folder with redistributed builds.
+These unmodified assemblies are distributed beside Syra.exe for .NET Framework 4.8 compatibility. Packages were downloaded from the official NuGet v3 flat-container service and pinned to these versions. Keep the Licenses folder with redistributed builds.
 
 | Package | Version | License |
 | --- | --- | --- |
@@ -14,7 +14,7 @@ These unmodified assemblies are distributed beside Skynet.exe for .NET Framework
 
 Microsoft's MIT license and the runtime package's third-party notices are included in Licenses/Microsoft-MIT.txt and Licenses/Microsoft-Third-Party-Notices.txt. Ical.Net's license includes its upstream notices. NodaTime copyright: Jon Skeet and contributors. Portable.System.DateTimeOnly copyright: Oleg Rakhmatulin. Microsoft libraries copyright: Microsoft Corporation.
 
-Skynet.exe.config redirects the Unsafe assembly to the included 6.0.1.0 assembly from package 6.1.0, satisfying the bundled libraries' requirements. Package versions and assembly versions are distinct.
+Syra.exe.config redirects the Unsafe assembly to the included 6.0.1.0 assembly from package 6.1.0, satisfying the bundled libraries' requirements. Package versions and assembly versions are distinct.
 
 ## Embedded browser
 

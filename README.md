@@ -20,7 +20,7 @@ See [PC setup](app/PC-SETUP.md), [desktop controls](app/DESKTOP-SETUP.md), [voic
 
 On Windows, run `app\Build.cmd` to compile with the .NET Framework compiler. Dependencies and their license texts are included. `scripts\Build-Release.ps1` builds the standalone setup and portable ZIP in `dist`. `store\Build-Msix.ps1 -DevelopmentPreview -MakeAppxPath <path-to-makeappx.exe>` builds the unsigned Store preview. See [Store setup](store/SUBMISSION.md) for the SDK tools and final identity requirements.
 
-Tests: run `app\Skynet.exe --self-test <empty-test-folder>`; run `app\Test-Chat.ps1`, `app\Test-Calendar.ps1` and `app\Test-VoiceCatalog.ps1` with Windows PowerShell. These test fixtures use synthetic data. Native display/taskbar, packaged activation, and actual microphone/sensor behavior must also be tested on target PCs.
+Tests: run `app\Syra.exe --self-test <empty-test-folder>`; run `app\Test-Chat.ps1`, `app\Test-Calendar.ps1` and `app\Test-VoiceCatalog.ps1` with Windows PowerShell. These test fixtures use synthetic data. Native display/taskbar, packaged activation, and actual microphone/sensor behavior must also be tested on target PCs.
 
 ## Features and limits
 
@@ -35,6 +35,6 @@ Tests: run `app\Skynet.exe --self-test <empty-test-folder>`; run `app\Test-Chat.
 
 [Privacy](PRIVACY.md) · [Support](https://github.com/tallguy644/Desktop-Assistant/issues) · [Third-party notices](app/THIRD-PARTY-NOTICES.md) · [License status](LICENSE-STATUS.md)
 
-The historical internal filename `Skynet.exe` and settings folder `JarvisDesk` remain for compatibility. They are not the product name. Personal settings are deliberately excluded from this repository.
+The app runs as `Syra.exe` (renamed from `Skynet.exe`; installing over an older copy removes the old file and updates shortcuts and Start with Windows). The settings folder `JarvisDesk` keeps its historical name so your settings carry over. Personal settings are deliberately excluded from this repository.
 
 All app setup controls are grouped in one Setup window. See [Setup guide](SETTINGS.md).

@@ -94,7 +94,7 @@ namespace JarvisDesk {
     if(args.Length!=8 || (args[7]!="0" && args[7]!="1"))return 2;bool topmost=args[7]=="1";int id=Int32.Parse(args[1]);long ticks=Int64.Parse(args[2]);var window=new IntPtr(Int64.Parse(args[3]));uint shell=UInt32.Parse(args[4]);Guid token;if(!Guid.TryParseExact(args[5],"N",out token))return 2;string device=Encoding.UTF8.GetString(Convert.FromBase64String(args[6]));
     using(var stop=EventWaitHandle.OpenExisting("Local\\JarvisDesk.TaskbarGuard."+token.ToString("N"))){
      try{using(var parent=Process.GetProcessById(id)){
-      if(parent.StartTime.ToUniversalTime().Ticks!=ticks || !String.Equals(parent.MainModule.FileName,Path.Combine(AppDomain.CurrentDomain.BaseDirectory,"Skynet.exe"),StringComparison.OrdinalIgnoreCase))return 2;
+      if(parent.StartTime.ToUniversalTime().Ticks!=ticks || !String.Equals(parent.MainModule.FileName,Process.GetCurrentProcess().MainModule.FileName,StringComparison.OrdinalIgnoreCase))return 2;
       using(var ready=EventWaitHandle.OpenExisting("Local\\JarvisDesk.TaskbarGuard."+token.ToString("N")+".ready"))ready.Set();
       while(!parent.HasExited){if(stop.WaitOne(300))return 0;}
      }}catch(ArgumentException){} // Parent already exited before the companion started.

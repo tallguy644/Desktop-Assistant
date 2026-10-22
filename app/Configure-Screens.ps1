@@ -1,6 +1,6 @@
 param([switch]$Restore)
 $ErrorActionPreference='Stop'
-if(Get-Process -Name Skynet -ErrorAction SilentlyContinue) { throw 'Close Skynet before configuring or restoring screen settings.' }
+if(Get-Process -Name Syra,Skynet -ErrorAction SilentlyContinue) { throw 'Close Syra before configuring or restoring screen settings.' }
 $dataDirectory=Join-Path $env:LOCALAPPDATA 'JarvisDesk'
 New-Item -ItemType Directory -Path $dataDirectory -Force | Out-Null
 $backupPath=Join-Path $dataDirectory 'screen-windows-backup.json'
@@ -24,7 +24,7 @@ function Set-DisplayTimeouts([Guid]$Plan,[uint32]$AC,[uint32]$DC) {
  if([SkynetPowerPlan]::Active() -eq $Plan) { & powercfg.exe /setactive $Plan.ToString();if($LASTEXITCODE -ne 0) { throw 'Windows could not apply the display timeout.' } }
  if([SkynetPowerPlan]::Display($Plan,$true) -ne $AC -or [SkynetPowerPlan]::Display($Plan,$false) -ne $DC) { throw 'Display timeout verification failed.' }
 }
-$assembly=[Reflection.Assembly]::LoadFrom((Join-Path $PSScriptRoot 'Skynet.exe'))
+$assembly=[Reflection.Assembly]::LoadFrom((Join-Path $PSScriptRoot 'Syra.exe'))
 $type=$assembly.GetType('JarvisDesk.ScreenPreferences')
 $settingsPath=Join-Path $dataDirectory 'screens.json'
 $settings=$type.GetMethod('Load').Invoke($null,[object[]]@([string]$settingsPath))
@@ -33,7 +33,7 @@ if($Restore) {
  $backup=Get-Content -LiteralPath $backupPath -Raw | ConvertFrom-Json
  Set-DisplayTimeouts ([Guid]$backup.Plan) ([uint32]$backup.AC) ([uint32]$backup.DC)
  $settings.Enabled=$false;$settings.Save($settingsPath)
- Write-Output 'Restored the previous Windows display timeouts and disabled Skynet voice screen control. Manual sign-in settings are unchanged.'
+ Write-Output 'Restored the previous Windows display timeouts and disabled Syra voice screen control. Manual sign-in settings are unchanged.'
  exit
 }
 $plan=[SkynetPowerPlan]::Active()
@@ -42,5 +42,5 @@ if(!(Test-Path -LiteralPath $backupPath)) {
 }
 Set-DisplayTimeouts $plan 600 600
 $settings.Enabled=$true;$settings.TimeoutMinutes=10;$settings.Save($settingsPath)
-Write-Output 'PASS Windows display timeout is 600 seconds on AC and battery. Skynet voice screen control is enabled at 10 minutes.'
+Write-Output 'PASS Windows display timeout is 600 seconds on AC and battery. Syra voice screen control is enabled at 10 minutes.'
 Write-Output 'Previous display timeouts were backed up. Password, PIN, Windows Hello, manual lock, and computer sleep timeouts were not changed.'

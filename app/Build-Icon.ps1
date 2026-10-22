@@ -44,7 +44,7 @@ function RenderIcon([int]$size) {
 }
 $sizes = @(16,24,32,48,64,128,256)
 $images = @(); foreach ($size in $sizes) { $images += ,(RenderIcon $size) }
-$stream = [IO.File]::Create((Join-Path $OutputDirectory 'Skynet.ico')); $writer = [IO.BinaryWriter]::new($stream)
+$stream = [IO.File]::Create((Join-Path $OutputDirectory 'Syra.ico')); $writer = [IO.BinaryWriter]::new($stream)
 try {
     $writer.Write([uint16]0); $writer.Write([uint16]1); $writer.Write([uint16]$sizes.Count)
     $offset = 6 + 16 * $sizes.Count
@@ -56,5 +56,5 @@ try {
     }
     foreach ($bytes in $images) { $writer.Write([byte[]]$bytes) }
 } finally { $writer.Dispose(); $stream.Dispose() }
-[IO.File]::WriteAllBytes((Join-Path $OutputDirectory 'Skynet-icon.png'),[byte[]]$images[-1])
+[IO.File]::WriteAllBytes((Join-Path $OutputDirectory 'Syra-icon.png'),[byte[]]$images[-1])
 Write-Output 'Created multi-resolution arc-reactor icon (16-256 pixels).'

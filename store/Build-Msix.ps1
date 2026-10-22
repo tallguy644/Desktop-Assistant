@@ -13,13 +13,13 @@ if(!$MakeAppxPath -or !(Test-Path -LiteralPath $MakeAppxPath)){throw 'Pass -Make
 $dist=Join-Path $root 'dist';New-Item -ItemType Directory -Path $dist -Force | Out-Null
 $payload=Join-Path $dist ('msix-payload-'+[guid]::NewGuid().ToString('N'));New-Item -ItemType Directory -Path (Join-Path $payload 'app'),(Join-Path $payload 'Assets') -Force | Out-Null
 # Explicit whitelist: no personal profiles, setup scripts, history, tests or source files in MSIX.
-$names=@('Skynet.exe','TaskbarRecovery.exe','Skynet.exe.config','Skynet.ico','Microsoft.Web.WebView2.Core.dll','Microsoft.Web.WebView2.Wpf.dll','WebView2Loader.dll','Ical.Net.dll','NodaTime.dll','Portable.System.DateTimeOnly.dll','System.Memory.dll','System.Buffers.dll','System.Numerics.Vectors.dll','System.Runtime.CompilerServices.Unsafe.dll')
+$names=@('Syra.exe','TaskbarRecovery.exe','Syra.exe.config','Syra.ico','Microsoft.Web.WebView2.Core.dll','Microsoft.Web.WebView2.Wpf.dll','WebView2Loader.dll','Ical.Net.dll','NodaTime.dll','Portable.System.DateTimeOnly.dll','System.Memory.dll','System.Buffers.dll','System.Numerics.Vectors.dll','System.Runtime.CompilerServices.Unsafe.dll')
 foreach($name in $names){Copy-Item -LiteralPath (Join-Path $root "app\$name") -Destination (Join-Path $payload 'app')}
 Copy-Item -LiteralPath (Join-Path $root 'app\Licenses') -Destination (Join-Path $payload 'app') -Recurse
 Get-ChildItem -LiteralPath (Join-Path $root 'app') -Filter '*.md' | Copy-Item -Destination (Join-Path $payload 'app')
 Copy-Item -LiteralPath (Join-Path $root 'PRIVACY.md') -Destination (Join-Path $payload 'app')
 Add-Type -AssemblyName System.Drawing
-$image=[Drawing.Image]::FromFile((Join-Path $root 'app\Skynet-icon.png'))
+$image=[Drawing.Image]::FromFile((Join-Path $root 'app\Syra-icon.png'))
 try {foreach($entry in @(@('StoreLogo',50),@('Square44x44Logo',44),@('Square150x150Logo',150))){$bitmap=New-Object Drawing.Bitmap([int]$entry[1]),([int]$entry[1]);$graphics=[Drawing.Graphics]::FromImage($bitmap);try{$graphics.Clear([Drawing.Color]::Transparent);$graphics.InterpolationMode=[Drawing.Drawing2D.InterpolationMode]::HighQualityBicubic;$graphics.DrawImage($image,0,0,$bitmap.Width,$bitmap.Height);$bitmap.Save((Join-Path $payload ('Assets\'+$entry[0]+'.png')),[Drawing.Imaging.ImageFormat]::Png)}finally{$graphics.Dispose();$bitmap.Dispose()}}}finally{$image.Dispose()}
 $manifest=Get-Content -LiteralPath (Join-Path $PSScriptRoot 'Package.appxmanifest.template') -Raw
 foreach($name in @('IdentityName','Publisher','PublisherDisplayName','DisplayName','Version')){$manifest=$manifest.Replace('{{'+$name+'}}',[Security.SecurityElement]::Escape((Get-Variable -Name $name -ValueOnly)))}

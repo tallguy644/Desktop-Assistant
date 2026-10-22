@@ -16,7 +16,7 @@ class DesktopInstaller : Form {
  readonly Button install=new Button {Text="Install",Width=130,Height=36};
  readonly Label status=new Label {AutoSize=true,MaximumSize=new Size(520,0)};
  static readonly string Target=Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),"JarvisDesk","bin");
- static readonly string Exe=Path.Combine(Target,"Skynet.exe");
+ static readonly string Exe=Path.Combine(Target,"Syra.exe");
  bool working,finished;
  static string CompatibilityIssue(){
   if(!Environment.Is64BitOperatingSystem)return "This package requires a 64-bit Windows PC.";
@@ -47,7 +47,7 @@ class DesktopInstaller : Form {
  }
  static void Install(bool pin,bool run,string monitor){
   string issue=CompatibilityIssue();if(issue!=null)throw new IOException(issue);
-  foreach(var process in Process.GetProcessesByName("Skynet")){
+  foreach(var process in Process.GetProcessesByName("Syra").Concat(Process.GetProcessesByName("Skynet"))){
    try{
     if(!String.Equals(process.MainModule.FileName,Exe,StringComparison.OrdinalIgnoreCase))throw new IOException("Close the other assistant installation first.");
     if(process.MainWindowHandle==IntPtr.Zero){using(var signal=Process.Start(new ProcessStartInfo(Exe,"--window") {UseShellExecute=false,CreateNoWindow=true}))signal.WaitForExit(3000);for(int i=0;i<15;i++){System.Threading.Thread.Sleep(150);process.Refresh();if(process.MainWindowHandle!=IntPtr.Zero)break;}}
@@ -60,7 +60,7 @@ class DesktopInstaller : Form {
     string prefix=Path.GetFullPath(folder).TrimEnd(Path.DirectorySeparatorChar)+Path.DirectorySeparatorChar;
     foreach(var entry in zip.Entries){string path=Path.GetFullPath(Path.Combine(folder,entry.FullName));if(!path.StartsWith(prefix,StringComparison.OrdinalIgnoreCase))throw new IOException("Invalid installer path.");if(String.IsNullOrEmpty(entry.Name)){Directory.CreateDirectory(path);continue;}Directory.CreateDirectory(Path.GetDirectoryName(path));using(var input=entry.Open())using(var output=File.Create(path))input.CopyTo(output);}
    }
-   string setup=Path.Combine(folder,"Skynet","Setup.ps1");
+   string setup=Path.Combine(folder,"Syra","Setup.ps1");
    var start=new ProcessStartInfo(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System),"WindowsPowerShell","v1.0","powershell.exe"),"-NoProfile -ExecutionPolicy Bypass -File \""+setup+"\"") {UseShellExecute=false,CreateNoWindow=true,RedirectStandardOutput=true,RedirectStandardError=true};
    using(var process=Process.Start(start)){var output=process.StandardOutput.ReadToEndAsync();var error=process.StandardError.ReadToEndAsync();process.WaitForExit();Task.WaitAll(output,error);if(process.ExitCode!=0)throw new IOException("Setup failed. "+error.Result);}
    using(var key=Registry.CurrentUser.CreateSubKey(@"Software\Microsoft\Windows\CurrentVersion\Run")){string own="\""+Exe+"\"";if(run)key.SetValue("DesktopAssistant",own,RegistryValueKind.String);else if((key.GetValue("DesktopAssistant") as string)==own)key.DeleteValue("DesktopAssistant",false);}
