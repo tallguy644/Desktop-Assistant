@@ -143,6 +143,7 @@ fun PairScreen(vm: CompanionViewModel) {
             modifier = Modifier.fillMaxWidth().height(52.dp), shape = PanelShape,
         ) { Text("TRY DEMO", fontFamily = FontFamily.Monospace, letterSpacing = 3.sp) }
         Text("Explore the app with sample data. No PC needed; nothing is sent anywhere.", color = Syra.Muted, fontSize = 13.sp)
+        Text("Version ${BuildConfig.VERSION_NAME}", color = Syra.Muted, fontFamily = FontFamily.Monospace, fontSize = 11.sp)
     }
 }
 
