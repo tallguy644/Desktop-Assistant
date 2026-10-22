@@ -38,6 +38,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.foundation.layout.Column
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 
@@ -85,14 +91,18 @@ private fun MainScreen(vm: CompanionViewModel) {
         vm.toast?.let { snackbar.showSnackbar(it); vm.toast = null }
     }
 
+    HudBackground {
     Scaffold(
-        containerColor = Syra.Background,
+        containerColor = Color.Transparent,
         snackbarHost = { SnackbarHost(snackbar) },
         topBar = {
             TopAppBar(
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Syra.Background, titleContentColor = Syra.Cyan),
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent, titleContentColor = Syra.Cyan, actionIconContentColor = Syra.Cyan),
                 title = {
-                    Text((vm.pairing?.pcName ?: "Syra").uppercase() + " / " + Tab.entries[tab].label.uppercase() + (if (vm.demo) "  · DEMO" else ""), fontFamily = FontFamily.Monospace)
+                    Column {
+                        Text((vm.pairing?.pcName ?: "Syra").uppercase() + " // " + Tab.entries[tab].label.uppercase(), fontFamily = FontFamily.Monospace, letterSpacing = 3.sp, fontSize = 18.sp)
+                        HudLabel(if (vm.demo) "DEMO LINK · SIMULATED" else if (vm.connectionError == null && vm.status != null) "UPLINK ACTIVE" else "UPLINK SEARCHING", color = if (vm.demo) Syra.Warn else Syra.Muted)
+                    }
                 },
                 actions = {
                     StatusDot(vm.status != null && vm.connectionError == null)
@@ -107,13 +117,13 @@ private fun MainScreen(vm: CompanionViewModel) {
             )
         },
         bottomBar = {
-            NavigationBar(containerColor = Syra.Panel) {
+            NavigationBar(containerColor = Syra.Background.copy(alpha = 0.85f), modifier = Modifier.drawBehind { drawLine(Syra.Cyan.copy(alpha = 0.5f), Offset(0f, 0f), Offset(size.width, 0f), 1.dp.toPx()) }) {
                 Tab.entries.forEachIndexed { i, t ->
                     NavigationBarItem(
                         selected = tab == i,
                         onClick = { tab = i },
                         icon = { Icon(t.icon, t.label) },
-                        label = { Text(t.label) },
+                        label = { Text(t.label.uppercase(), fontFamily = FontFamily.Monospace, letterSpacing = 2.sp) },
                         colors = NavigationBarItemDefaults.colors(
                             selectedIconColor = Syra.Background,
                             indicatorColor = Syra.Cyan,
@@ -133,5 +143,6 @@ private fun MainScreen(vm: CompanionViewModel) {
                 Tab.Ask -> AskTab(vm)
             }
         }
+    }
     }
 }
