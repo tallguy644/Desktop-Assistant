@@ -1,4 +1,4 @@
-param([ValidateSet('Calendar','TemperatureAlerts','Commute','Browser','NextUp','Screens','Identity','ChatNaming')][string]$Suite='Calendar')
+param([ValidateSet('Calendar','TemperatureAlerts','Commute','Browser','NextUp','Screens','Identity','ChatNaming','Companion')][string]$Suite='Calendar')
 $ErrorActionPreference='Stop'
 $testDirectory=Join-Path ([IO.Path]::GetTempPath()) ('SkynetCalendarTests-'+[guid]::NewGuid().ToString('N'))
 try {

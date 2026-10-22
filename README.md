@@ -30,6 +30,7 @@ Tests: run `app\Skynet.exe --self-test <empty-test-folder>`; run `app\Test-Chat.
 - CPU/RAM usage; optional CPU/GPU/board temperatures in Fahrenheit, GPU load and fan RPM. Zero-RPM fans hide automatically and return when spinning. Spoken thermal alerts are configurable in Setup and supplement your hardware's own protections.
 - Private read-only calendar link, agenda and Next Up; optional Google Maps commute view. Sensor labels cannot identify radiator fan wiring automatically.
 - Optional ChatGPT sign-in and online speech require internet, eligible accounts and provider availability. No claim of free, unlimited or universal subscription access. Review current provider distribution requirements before a commercial release.
+- Optional **phone companion**: pair the Syra Companion Android app to launch apps, wake/turn off screens, watch PC stats and ask questions from your phone, at home or anywhere through Tailscale. See [phone companion setup](app/COMPANION-SETUP.md).
 - Screen timeout/wake does not bypass Windows authentication. Desktop/taskbar behavior depends on Explorer and display configuration and remains a release test focus.
 
 [Privacy](PRIVACY.md) · [Support](https://github.com/tallguy644/Desktop-Assistant/issues) · [Third-party notices](app/THIRD-PARTY-NOTICES.md) · [License status](LICENSE-STATUS.md)

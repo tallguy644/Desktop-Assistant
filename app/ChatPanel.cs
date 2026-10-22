@@ -129,22 +129,25 @@ namespace JarvisDesk {
   }
   void DisconnectChat() { if(chatBusy) return; if(questionListening) EndQuestionDictation(); StopCurrentSpeech(); chatClient.Disconnect(); chatModels.ItemsSource=null; chatMessages.Clear(); SaveChatHistory(); PaintChatHistory(); chatSettings.IsExpanded=true; chatStatus.Text="Disconnected. Use ACCOUNT to connect again."; UpdateChatAccount(); }
   void CancelChatOperation() { if(questionListening) { EndQuestionDictation(); chatStatus.Text="Question microphone closed."; } if(chatBusy && chatOperation!=null) { chatOperation.Cancel();chatQuestionInFlight=false;RefreshReactorActivity(); chatStatus.Text="Cancelling…"; } }
-  void SendChat() {
-   if(chatBusy) return;
-   if(!chatClient.Connected || !(chatModels.SelectedItem is ChatModel)) { chatStatus.Text="Connect with ChatGPT and select an available model first."; return; }
-   string question=chatInput.Text.Trim(); if(question.Length==0) return;
+  void SendChat() { SendChat(null,false,null); }
+  // remoteReply is set for questions from the phone companion: it receives (answer,null) or (null,error).
+  void SendChat(string remoteQuestion,bool remoteSpeak,Action<string,string> remoteReply) {
+   bool remote=remoteReply!=null;
+   if(chatBusy) { if(remote) remoteReply(null,"Already answering a question. Try again in a moment."); return; }
+   if(!chatClient.Connected || !(chatModels.SelectedItem is ChatModel)) { chatStatus.Text="Connect with ChatGPT and select an available model first."; if(remote) remoteReply(null,"Connect ChatGPT in " + AssistantIdentity.CurrentName + " Setup first."); return; }
+   string question=(remote?remoteQuestion??"":chatInput.Text).Trim(); if(question.Length==0) { if(remote) remoteReply(null,"Type a question first."); return; }
    if(questionListening) EndQuestionDictation(); StopCurrentSpeech();
    var history=chatMessages.Select(m=>new ChatMessage { Role=m.Role,Content=m.Content }).ToList();
    while(history.Count>=38 || history.Sum(m=>m.Content.Length)+question.Length>28000) { if(history.Count==0) break; history.RemoveAt(0); if(history.Count>0 && history[0].Role=="assistant") history.RemoveAt(0); }
    history.Add(new ChatMessage { Role="user",Content=question });
-   string model=((ChatModel)chatModels.SelectedItem).Slug; var token=StartChatOperation(150); chatQuestionInFlight=true;RefreshReactorActivity();chatInput.Clear(); chatStatus.Text="Thinking…";
+   string model=((ChatModel)chatModels.SelectedItem).Slug; var token=StartChatOperation(150); chatQuestionInFlight=true;RefreshReactorActivity();if(!remote) chatInput.Clear(); chatStatus.Text=remote?"Thinking about a question from your phone…":"Thinking…";
    string chatName=ChatDisplayName;
    string prefix=String.Join("\n\n",history.Select(m=>(m.Role=="user"?"YOU":ChatDisplayUpper)+"\n"+m.Content))+"\n\n" + ChatDisplayUpper + "\n"; chatTranscript.Text=prefix; var partial=new StringBuilder();
    Task.Run(delegate {
     try {
      string answer=chatClient.Ask(model,history,delegate(string value) { OnChatUI(delegate { partial.Append(value); QueueChatPreview(prefix,partial); }); },token,chatName);
-     OnChatUI(delegate { CancelChatPreview();history.Add(new ChatMessage { Role="assistant",Content=answer }); while(history.Count>40 || history.Sum(m=>m.Content.Length)>32000) { history.RemoveAt(0); if(history.Count>0 && history[0].Role=="assistant") history.RemoveAt(0); } chatMessages.Clear(); chatMessages.AddRange(history); SaveChatHistory(); PaintChatHistory(); chatStatus.Text="Reply complete."; SetChatBusy(false); if(readChatAloud.IsChecked==true) SpeakChatReply(answer); });
-    } catch(Exception ex) { OnChatUI(delegate { CancelChatPreview();chatTranscript.Text=prefix+partial+"\n\n[Reply incomplete — not saved to conversation]"; if(String.IsNullOrWhiteSpace(chatInput.Text)) chatInput.Text=question; ReportChatFailure(ex); SetChatBusy(false); }); }
+     OnChatUI(delegate { CancelChatPreview();history.Add(new ChatMessage { Role="assistant",Content=answer }); while(history.Count>40 || history.Sum(m=>m.Content.Length)>32000) { history.RemoveAt(0); if(history.Count>0 && history[0].Role=="assistant") history.RemoveAt(0); } chatMessages.Clear(); chatMessages.AddRange(history); SaveChatHistory(); PaintChatHistory(); chatStatus.Text="Reply complete."; SetChatBusy(false); if(remote) remoteReply(answer,null); if(remote?remoteSpeak:readChatAloud.IsChecked==true) SpeakChatReply(answer); });
+    } catch(Exception ex) { OnChatUI(delegate { CancelChatPreview();chatTranscript.Text=prefix+partial+"\n\n[Reply incomplete — not saved to conversation]"; if(!remote && String.IsNullOrWhiteSpace(chatInput.Text)) chatInput.Text=question; ReportChatFailure(ex); SetChatBusy(false); if(remote) remoteReply(null,chatStatus.Text); }); }
    });
   }
   void SpeakChatReply(string answer) {

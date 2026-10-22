@@ -87,7 +87,7 @@ namespace JarvisDesk {
    WindowStartupLocation = WindowStartupLocation.CenterScreen;
    Background = new SolidColorBrush(Color.FromRgb(6, 13, 24)); Foreground = Brushes.White; FontFamily = new FontFamily("Segoe UI");
    Loaded+=delegate{FitStartupWindow();};
-   BuildUI(); LoadMaps(); RefreshList(); InitVoice(); InitializeChat(); InitializeCalendar(); InitializeTemperatureAlerts(); InitializeCommute(); InitializeScreenControl();
+   BuildUI(); LoadMaps(); RefreshList(); InitVoice(); InitializeChat(); InitializeCalendar(); InitializeTemperatureAlerts(); InitializeCommute(); InitializeScreenControl(); InitializeCompanion();
    timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(250) };
    timer.Tick += delegate { UpdateReferenceClock(); CheckQuestionTimeout(); CheckCalendar(); CheckThermalAlerts(); CheckCommuteReminders(); UpdateNextUp(); CheckAgendaNarration(); CheckScreenControl();
     if (!continuous && pttUntil != DateTime.MinValue && DateTime.UtcNow > pttUntil) { pttUntil = DateTime.MinValue; StopRecognition(); SetState("STANDBY", "Push-to-talk window ended. Ready when you are."); }
@@ -155,6 +155,7 @@ namespace JarvisDesk {
    });
   }
   void ShowSystem(SystemSnapshot snapshot) {
+   companionSnapshot = snapshot;
    cpuLoad.Text = (snapshot.CpuUsage.HasValue ? snapshot.CpuUsage.Value.ToString("0") + "%" : "—"); cpuBar.Width = snapshot.CpuUsage.HasValue ? Math.Max(0, Math.Min(260, snapshot.CpuUsage.Value * 2.6)) : 0;
    gpuLoad.Text = (snapshot.GpuUsage.HasValue ? snapshot.GpuUsage.Value.ToString("0") + "%" : "—"); gpuLoad.ToolTip = snapshot.GpuUsageDetail; gpuBar.ToolTip = snapshot.GpuUsageDetail;
    gpuBar.Width = snapshot.GpuUsage.HasValue ? Math.Max(0, Math.Min(260, snapshot.GpuUsage.Value * 2.6)) : 0;
