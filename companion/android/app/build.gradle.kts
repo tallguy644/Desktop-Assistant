@@ -16,7 +16,23 @@ android {
         versionName = "1.1-demo"
     }
 
+    // A fixed key (supplied by CI from repository secrets) lets each new build install over the last one.
+    // Without it, Gradle's per-machine debug key is used and updates need an uninstall first.
+    val keystorePath = System.getenv("SYRA_KEYSTORE")
+    signingConfigs {
+        if (keystorePath != null) {
+            create("syra") {
+                storeFile = file(keystorePath)
+                storePassword = System.getenv("SYRA_KEYSTORE_PASSWORD")
+                keyAlias = "syra"
+                keyPassword = System.getenv("SYRA_KEYSTORE_PASSWORD")
+            }
+        }
+    }
     buildTypes {
+        debug {
+            if (keystorePath != null) signingConfig = signingConfigs.getByName("syra")
+        }
         release {
             isMinifyEnabled = false
         }

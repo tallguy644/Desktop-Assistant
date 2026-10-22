@@ -27,8 +27,18 @@ jobs:
           java-version: "17"
       - uses: gradle/actions/setup-gradle@v4
       - name: Build debug APK
+        env:
+          KEYSTORE_B64: ${{ secrets.SYRA_KEYSTORE_B64 }}
+          SYRA_KEYSTORE_PASSWORD: ${{ secrets.SYRA_KEYSTORE_PASSWORD }}
         run: |
           chmod +x gradlew
+          if [ -n "$KEYSTORE_B64" ]; then
+            echo "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/syra.jks"
+            export SYRA_KEYSTORE="$RUNNER_TEMP/syra.jks"
+            echo "Signing with the fixed Syra key."
+          else
+            echo "::warning::No SYRA_KEYSTORE_B64 secret; using a one-off debug key. Uninstall the previous app before installing this build."
+          fi
           ./gradlew --no-daemon assembleDebug
       - name: Rename APK
         run: cp app/build/outputs/apk/debug/app-debug.apk SyraCompanion.apk
