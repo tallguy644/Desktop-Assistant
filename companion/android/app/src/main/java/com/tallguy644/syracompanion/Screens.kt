@@ -126,7 +126,7 @@ fun PairScreen(vm: CompanionViewModel) {
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Reactor(170.dp, active = vm.pairBusy)
-            Text("SYRA", color = Syra.Ink, fontFamily = FontFamily.Monospace, fontSize = 30.sp, letterSpacing = 12.sp, fontWeight = FontWeight.Bold)
+            GlitchText("SYRA", fontSize = 30.sp, letterSpacing = 12.sp)
             HudLabel("COMPANION LINK // STANDBY", color = Syra.Cyan)
             Panel("ON YOUR PC") {
                 Text(
@@ -161,11 +161,12 @@ fun DashboardTab(vm: CompanionViewModel) {
     ) {
         if (vm.demo) Banner("DEMO MODE — sample data, nothing is sent to a PC. Exit from the ⋮ menu.", Syra.Cyan)
         vm.connectionError?.let { Banner(it, Syra.Core) }
-        Reactor(210.dp, active = s?.listening == true)
-        Text(
-            s?.state?.ifBlank { null } ?: if (s == null) "LINKING" else "ONLINE",
-            color = Syra.Ink, fontFamily = FontFamily.Monospace, fontSize = 18.sp, letterSpacing = 4.sp, fontWeight = FontWeight.Bold,
+        if (s != null) Ticker(
+            "CPU ${s.cpu?.toInt() ?: "--"}%  ▲  GPU ${s.gpu?.toInt() ?: "--"}%  ▲  RAM ${s.ram?.toInt() ?: "--"}%  ▲  CORE ${s.cpuTempF?.toInt() ?: "--"}°F  ▲  " +
+                (s.nowPlaying?.let { "NOW PLAYING ${it.title.uppercase()}  ▲  " } ?: "") + if (vm.demo) "SIMULATED UPLINK  ▲  " else "UPLINK STABLE  ▲  "
         )
+        Reactor(210.dp, active = s?.listening == true)
+        GlitchText(s?.state?.ifBlank { null } ?: if (s == null) "LINKING" else "ONLINE", fontSize = 18.sp, letterSpacing = 4.sp)
         HudLabel(
             when { s == null -> "AWAITING TELEMETRY"; s.listening -> "MIC ● LISTENING"; else -> "MIC ○ STANDBY" },
             color = if (s?.listening == true) Syra.Good else Syra.Muted,
@@ -178,6 +179,14 @@ fun DashboardTab(vm: CompanionViewModel) {
                 ArcGauge("GPU", s.gpu, Modifier.weight(1f))
             }
             if (s.memory.isNotBlank() && s.memory != "Unavailable") { Spacer(Modifier.height(8.dp)); HudLabel(s.memory.uppercase()) }
+        }
+        Panel("TELEMETRY // LIVE") {
+            Sparkline(listOf(vm.cpuHistory.toList() to Syra.Cyan, vm.gpuHistory.toList() to Syra.Core))
+            Spacer(Modifier.height(8.dp))
+            Row {
+                HudLabel("━ CPU", color = Syra.Cyan); Spacer(Modifier.width(16.dp)); HudLabel("━ GPU", color = Syra.Core)
+                Spacer(Modifier.weight(1f)); HudLabel("2 MIN")
+            }
         }
         Panel("THERMALS") {
             Row(Modifier.fillMaxWidth()) {
@@ -284,7 +293,7 @@ fun AskTab(vm: CompanionViewModel) {
         Column(Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()), horizontalAlignment = Alignment.CenterHorizontally) {
             if (vm.asking || vm.answer != null || vm.agenda.isNotEmpty()) {
                 Panel(vm.answerTitle.uppercase().take(60)) {
-                    if (vm.asking) Working("PROCESSING")
+                    if (vm.asking) { Waveform(); Spacer(Modifier.height(6.dp)); Working("PROCESSING") }
                     vm.agenda.forEach { item ->
                         Row(Modifier.fillMaxWidth().padding(vertical = 6.dp)) {
                             Text(item.time, color = Syra.Cyan, fontFamily = FontFamily.Monospace, fontSize = 12.sp, modifier = Modifier.width(84.dp).padding(top = 2.dp))
@@ -294,7 +303,7 @@ fun AskTab(vm: CompanionViewModel) {
                             }
                         }
                     }
-                    vm.answer?.takeIf { it.isNotBlank() }?.let { Text(it, color = Syra.Ink, fontSize = 15.sp, lineHeight = 23.sp) }
+                    vm.answer?.takeIf { it.isNotBlank() }?.let { Typewriter(it) }
                 }
             } else {
                 Spacer(Modifier.height(12.dp))

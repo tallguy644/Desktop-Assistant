@@ -55,7 +55,12 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             SyraTheme {
-                if (vm.pairing == null) PairScreen(vm) else MainScreen(vm)
+                var booted by rememberSaveable { mutableStateOf(false) }
+                when {
+                    !booted -> BootSequence { booted = true }
+                    vm.pairing == null -> PairScreen(vm)
+                    else -> MainScreen(vm)
+                }
             }
         }
     }
@@ -63,6 +68,7 @@ class MainActivity : ComponentActivity() {
 
 private enum class Tab(val label: String, val icon: ImageVector) {
     Dashboard("PC", ReactorIcon),
+    Media("Media", MediaIcon),
     Apps("Apps", Icons.AutoMirrored.Filled.List),
     Ask("Ask", MicIcon),
 }
@@ -100,7 +106,7 @@ private fun MainScreen(vm: CompanionViewModel) {
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent, titleContentColor = Syra.Cyan, actionIconContentColor = Syra.Cyan),
                 title = {
                     Column {
-                        Text((vm.pairing?.pcName ?: "Syra").uppercase() + " // " + Tab.entries[tab].label.uppercase(), fontFamily = FontFamily.Monospace, letterSpacing = 3.sp, fontSize = 18.sp)
+                        GlitchText((vm.pairing?.pcName ?: "Syra").uppercase() + " // " + Tab.entries[tab].label.uppercase(), fontSize = 18.sp, letterSpacing = 3.sp, color = Syra.Cyan)
                         HudLabel(if (vm.demo) "DEMO LINK · SIMULATED" else if (vm.connectionError == null && vm.status != null) "UPLINK ACTIVE" else "UPLINK SEARCHING", color = if (vm.demo) Syra.Warn else Syra.Muted)
                     }
                 },
@@ -117,28 +123,13 @@ private fun MainScreen(vm: CompanionViewModel) {
             )
         },
         bottomBar = {
-            NavigationBar(containerColor = Syra.Background.copy(alpha = 0.85f), modifier = Modifier.drawBehind { drawLine(Syra.Cyan.copy(alpha = 0.5f), Offset(0f, 0f), Offset(size.width, 0f), 1.dp.toPx()) }) {
-                Tab.entries.forEachIndexed { i, t ->
-                    NavigationBarItem(
-                        selected = tab == i,
-                        onClick = { tab = i },
-                        icon = { Icon(t.icon, t.label) },
-                        label = { Text(t.label.uppercase(), fontFamily = FontFamily.Monospace, letterSpacing = 2.sp) },
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = Syra.Background,
-                            indicatorColor = Syra.Cyan,
-                            unselectedIconColor = Syra.Muted,
-                            unselectedTextColor = Syra.Muted,
-                            selectedTextColor = Syra.Cyan,
-                        ),
-                    )
-                }
-            }
+            HudNavBar(Tab.entries.map { it.label }, Tab.entries.map { it.icon }, tab) { tab = it }
         },
     ) { padding ->
         Box(Modifier.fillMaxSize().padding(padding)) {
             when (Tab.entries[tab]) {
                 Tab.Dashboard -> DashboardTab(vm)
+                Tab.Media -> MediaTab(vm)
                 Tab.Apps -> AppsTab(vm)
                 Tab.Ask -> AskTab(vm)
             }

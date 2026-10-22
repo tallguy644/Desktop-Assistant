@@ -55,6 +55,17 @@ public static class CompanionTests {
    }
    var loaded = new CompanionSettings { Port = 5, Devices = null }; loaded.Normalize();
    Check(loaded.Port == CompanionSettings.DefaultPort && loaded.Devices.Count == 0, "Invalid saved settings fall back to safe defaults");
+   Func<string, string, KeyValuePair<string, string>> w = delegate(string n, string t) { return new KeyValuePair<string, string>(n, t); };
+   var np = NowPlayingReader.FromWindows(new[] { w("Spotify", "Daft Punk - Harder, Better, Faster, Stronger") });
+   Check(np.Source == "Spotify" && np.Playing && np.Title == "Daft Punk - Harder, Better, Faster, Stronger", "Spotify window title gives the playing track");
+   np = NowPlayingReader.FromWindows(new[] { w("Spotify", "Spotify Premium") });
+   Check(np.Source == "Spotify" && !np.Playing && np.Title == "", "Idle Spotify window reads as paused");
+   np = NowPlayingReader.FromWindows(new[] { w("chrome", "(3) Lo-fi beats to relax to - YouTube - Google Chrome"), w("Spotify", "Spotify Free") });
+   Check(np.Source == "YouTube" && np.Title == "Lo-fi beats to relax to", "YouTube tab title is cleaned and beats paused Spotify");
+   np = NowPlayingReader.FromWindows(new[] { w("msedge", "Video - YouTube \u2014 Microsoft Edge"), w("Spotify", "Artist - Song") });
+   Check(np.Source == "Spotify" && np.Title == "Artist - Song", "Playing Spotify wins over a YouTube tab");
+   Check(NowPlayingReader.FromWindows(new[] { w("chrome", "Inbox - Gmail"), w("notepad", "x - YouTube") }) == null, "Other tabs and apps are ignored");
+   Check(MediaKeys.Known("playpause") && MediaKeys.Known("volup") && !MediaKeys.Known("shutdown") && !MediaKeys.Known(null), "Only media actions are accepted");
    Console.WriteLine("All companion checks passed."); return 0;
   } catch (Exception ex) { Console.WriteLine("FAIL " + ex); return 1; }
  }

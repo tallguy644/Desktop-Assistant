@@ -51,7 +51,16 @@ namespace JarvisDesk {
    if (device == null) { companionThrottle.Fail(key, now); return CompanionResponse.Error(401, "This phone is not paired. Pair it again from " + AssistantIdentity.CurrentName + " Setup."); }
    companionThrottle.Clear(key);
    switch (route) {
-    case "GET /api/status": return OnUi(delegate { return CompanionResponse.Ok(CompanionStatus()); });
+    case "GET /api/status": {
+     NowPlayingInfo playing = null; try { playing = NowPlayingReader.Read(); } catch { }
+     return OnUi(delegate { var status = CompanionStatus(); status["nowPlaying"] = playing == null ? null : new Dictionary<string, object> { { "source", playing.Source }, { "title", playing.Title ?? "" }, { "playing", playing.Playing } }; return CompanionResponse.Ok(status); });
+    }
+    case "POST /api/media": {
+     string action = request.Text("action");
+     if (!MediaKeys.Known(action)) return CompanionResponse.Error(400, "Use playpause, next, previous, volup, voldown or mute.");
+     MediaKeys.Send(action); Thread.Sleep(300);
+     return CompanionResponse.Ok(new Dictionary<string, object> { { "message", MediaKeys.Message(action) } });
+    }
     case "GET /api/apps": return OnUi(delegate { return CompanionResponse.Ok(new Dictionary<string, object> { { "apps", maps.Select(m => m.Name).OrderBy(n => n).ToArray() } }); });
     case "POST /api/apps/launch": { string name = Rules.Normalize(request.Text("name")); return OnUi(delegate { return CompanionLaunch(name); }); }
     case "POST /api/screens": { string action = request.Text("action"); return OnUi(delegate { return CompanionScreens(action); }); }

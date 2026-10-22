@@ -71,9 +71,13 @@ class SyraApi(host: String, private val port: Int, private val token: String?) :
     override suspend fun agenda(): JSONObject = call("GET", "/api/agenda", timeoutMs = 25_000)
     override suspend fun commute(): String = call("GET", "/api/commute", timeoutMs = 40_000).optString("text")
     override suspend fun unpair(): JSONObject = call("POST", "/api/unpair")
+    override suspend fun media(action: String): String = call("POST", "/api/media", JSONObject().put("action", action)).optString("message")
 }
 
 fun JSONArray?.strings(): List<String> = if (this == null) emptyList() else List(length()) { optString(it) }
+
+/** What's playing on the PC (best effort, from the Spotify/browser window title). */
+data class NowPlaying(val source: String, val title: String, val playing: Boolean)
 
 /** Plain-Kotlin view of /api/status. */
 data class PcStatus(
@@ -94,6 +98,7 @@ data class PcStatus(
     val chatReady: Boolean,
     val calendar: Boolean,
     val commute: Boolean,
+    val nowPlaying: NowPlaying?,
 ) {
     companion object {
         private fun JSONObject.num(key: String): Double? = if (isNull(key) || !has(key)) null else optDouble(key).takeIf { !it.isNaN() }
@@ -120,6 +125,7 @@ data class PcStatus(
                 chatReady = chat.optBoolean("ready"),
                 calendar = json.optBoolean("calendar"),
                 commute = json.optBoolean("commute"),
+                nowPlaying = json.optJSONObject("nowPlaying")?.let { NowPlaying(it.optString("source"), it.optString("title"), it.optBoolean("playing")) },
             )
         }
     }

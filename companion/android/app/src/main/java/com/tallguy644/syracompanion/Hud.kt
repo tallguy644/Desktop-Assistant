@@ -47,12 +47,24 @@ import androidx.compose.ui.unit.sp
 import kotlin.math.cos
 import kotlin.math.min
 import kotlin.math.sin
+import androidx.compose.animation.core.Animatable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
+import kotlinx.coroutines.delay
+import kotlin.random.Random
 
 // ---------- Background: deep navy, faint grid, slow scan line ----------
 @Composable
 fun HudBackground(modifier: Modifier = Modifier, content: @Composable BoxScope.() -> Unit) {
     val t = rememberInfiniteTransition(label = "bg")
     val scan by t.animateFloat(0f, 1f, infiniteRepeatable(tween(7000, easing = LinearEasing)), label = "scan")
+    val drift by t.animateFloat(0f, 1f, infiniteRepeatable(tween(40000, easing = LinearEasing)), label = "drift")
+    // x, y, speed, size: tiny glowing motes that rise slowly through the grid
+    val motes = remember { List(36) { floatArrayOf(Random.nextFloat(), Random.nextFloat(), 0.3f + Random.nextFloat() * 0.9f, 1f + Random.nextFloat() * 2.2f) } }
     Box(
         modifier
             .fillMaxSize()
@@ -64,6 +76,13 @@ fun HudBackground(modifier: Modifier = Modifier, content: @Composable BoxScope.(
                 while (x < size.width) { drawLine(grid, Offset(x, 0f), Offset(x, size.height), 1f); x += step }
                 var y = 0f
                 while (y < size.height) { drawLine(grid, Offset(0f, y), Offset(size.width, y), 1f); y += step }
+                for (m in motes) {
+                    val py = ((m[1] - drift * m[2] * 2f) % 1f + 1f) % 1f
+                    val px = m[0] * size.width + sin((drift * 6.283f * m[2] * 3f) + m[0] * 10f) * 18f
+                    val twinkle = 0.35f + 0.65f * ((sin(drift * 60f * m[2] + m[1] * 20f) + 1f) / 2f)
+                    drawCircle(Syra.Cyan.copy(alpha = 0.10f * twinkle), m[3] * 3.2f, Offset(px, py * size.height))
+                    drawCircle(Syra.Cyan.copy(alpha = 0.55f * twinkle), m[3], Offset(px, py * size.height))
+                }
                 val sy = scan * size.height
                 drawRect(
                     Brush.verticalGradient(listOf(Color.Transparent, Syra.Cyan.copy(alpha = 0.07f), Color.Transparent), startY = sy - 60f, endY = sy + 60f),
@@ -101,7 +120,21 @@ fun Modifier.hudFrame(accent: Color = Syra.Cyan, fill: Color = Syra.Panel.copy(a
 
 @Composable
 fun Panel(title: String, modifier: Modifier = Modifier, accent: Color = Syra.Cyan, content: @Composable ColumnScope.() -> Unit) {
-    Column(modifier.fillMaxWidth().hudFrame(accent).padding(horizontal = 18.dp, vertical = 16.dp)) {
+    val t = rememberInfiniteTransition(label = "panel")
+    val sheen by t.animateFloat(-0.6f, 1.6f, infiniteRepeatable(tween(5600, easing = LinearEasing)), label = "sheen")
+    val appear = remember { Animatable(0f) }
+    LaunchedEffect(Unit) { appear.snapTo(0.55f); delay(70); appear.snapTo(0.12f); delay(60); appear.snapTo(0.8f); delay(50); appear.animateTo(1f, tween(220)) }
+    Column(
+        modifier.fillMaxWidth()
+            .graphicsLayer { alpha = appear.value }
+            .hudFrame(accent)
+            .drawWithContent {
+                drawContent()
+                val x = sheen * size.width
+                drawRect(Brush.linearGradient(listOf(Color.Transparent, accent.copy(alpha = 0.07f), Color.Transparent), start = Offset(x - 140f, 0f), end = Offset(x + 140f, size.height)))
+            }
+            .padding(horizontal = 18.dp, vertical = 16.dp),
+    ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Box(Modifier.size(width = 3.dp, height = 12.dp).drawBehind { drawRect(accent) })
             Spacer(Modifier.width(8.dp))
@@ -118,11 +151,12 @@ fun Panel(title: String, modifier: Modifier = Modifier, accent: Color = Syra.Cya
 @Composable
 fun HudButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true, primary: Boolean = true, accent: Color = Syra.Cyan, busy: Boolean = false) {
     val color = if (enabled) accent else Syra.Muted.copy(alpha = 0.5f)
+    val haptics = LocalHapticFeedback.current
     Box(
         modifier
             .height(52.dp)
             .hudFrame(color, fill = if (primary && enabled) accent.copy(alpha = 0.22f) else Syra.Panel.copy(alpha = 0.5f), cut = 10.dp)
-            .clickable(enabled = enabled && !busy, onClick = onClick),
+            .clickable(enabled = enabled && !busy) { haptics.performHapticFeedback(HapticFeedbackType.LongPress); onClick() },
         contentAlignment = Alignment.Center,
     ) {
         Text(
@@ -151,6 +185,7 @@ fun Reactor(diameter: Dp, active: Boolean, modifier: Modifier = Modifier, center
     val t = rememberInfiniteTransition(label = "reactor")
     val slow by t.animateFloat(0f, 360f, infiniteRepeatable(tween(if (active) 14000 else 26000, easing = LinearEasing)), label = "slow")
     val fast by t.animateFloat(360f, 0f, infiniteRepeatable(tween(if (active) 5000 else 11000, easing = LinearEasing)), label = "fast")
+    val sweep by t.animateFloat(0f, 360f, infiniteRepeatable(tween(if (active) 2600 else 4200, easing = LinearEasing)), label = "sweep")
     val beat by t.animateFloat(0.75f, 1f, infiniteRepeatable(tween(if (active) 900 else 1800, easing = FastOutSlowInEasing), RepeatMode.Reverse), label = "beat")
     Box(modifier.size(diameter), contentAlignment = Alignment.Center) {
         Canvas(Modifier.fillMaxSize()) {
@@ -164,6 +199,14 @@ fun Reactor(diameter: Dp, active: Boolean, modifier: Modifier = Modifier, center
                 drawLine(Syra.Cyan.copy(alpha = if (i % 6 == 0) 0.8f else 0.3f),
                     Offset(c.x + cos(a).toFloat() * inner, c.y + sin(a).toFloat() * inner),
                     Offset(c.x + cos(a).toFloat() * r * 0.97f, c.y + sin(a).toFloat() * r * 0.97f), 1.5f)
+            }
+            // radar sweep
+            rotate(sweep, c) {
+                drawArc(
+                    Brush.sweepGradient(0f to Color.Transparent, 0.80f to Color.Transparent, 1f to Syra.Cyan.copy(alpha = 0.38f), center = c),
+                    -72f, 72f, true, Offset(c.x - r * 0.95f, c.y - r * 0.95f), Size(r * 1.9f, r * 1.9f),
+                )
+                drawLine(Syra.Cyan.copy(alpha = 0.7f), c, Offset(c.x + r * 0.95f, c.y), 1.5f)
             }
             rotate(slow, c) {
                 ring(r * 0.80f, 3.dp.toPx(), Syra.Cyan.copy(alpha = 0.85f), floatArrayOf(r * 0.9f, r * 0.25f))

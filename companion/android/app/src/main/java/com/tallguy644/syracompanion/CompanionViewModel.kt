@@ -36,6 +36,9 @@ class CompanionViewModel(app: Application) : AndroidViewModel(app) {
     var connectionError by mutableStateOf<String?>(null)
         private set
     val apps = mutableStateListOf<String>()
+    /** Recent samples (about two minutes at one every three seconds) for the live graphs. */
+    val cpuHistory = mutableStateListOf<Float>()
+    val gpuHistory = mutableStateListOf<Float>()
     var appsLoading by mutableStateOf(false)
         private set
 
@@ -66,6 +69,11 @@ class CompanionViewModel(app: Application) : AndroidViewModel(app) {
         demo = true; pairError = null
         pairing = Pairing("demo", 0, "", "Syra")
         apps.clear(); answer = null; agenda.clear()
+        cpuHistory.clear(); gpuHistory.clear()
+        for (i in 0 until HISTORY) {
+            cpuHistory.add((24 + 14 * kotlin.math.sin(i / 4.0) + (i * 7 % 5)).toFloat())
+            gpuHistory.add((18 + 12 * kotlin.math.sin(i / 4.0 + 1.3) + (i * 3 % 4)).toFloat())
+        }
     }
 
     init {
@@ -73,10 +81,11 @@ class CompanionViewModel(app: Application) : AndroidViewModel(app) {
         if (START_IN_DEMO && pairing == null) startDemo()
     }
 
-    companion object { const val START_IN_DEMO = true }
+    companion object { const val START_IN_DEMO = true; const val HISTORY = 40 }
 
     private fun resetSession() {
         pairing = null; status = null; connectionError = null; apps.clear(); answer = null; agenda.clear(); question = ""
+        cpuHistory.clear(); gpuHistory.clear()
     }
 
     // ---------- Pairing ----------
@@ -134,17 +143,24 @@ class CompanionViewModel(app: Application) : AndroidViewModel(app) {
             while (isActive) {
                 val api = api() ?: break
                 try {
-                    status = PcStatus.from(api.status()); connectionError = null
+                    val s = PcStatus.from(api.status())
+                    status = s; connectionError = null
+                    record(cpuHistory, s.cpu); record(gpuHistory, s.gpu)
                 } catch (e: ApiException) {
                     if (e.status == 401) { handle(e); break }
                     connectionError = e.message
                 } catch (e: Exception) {
                     connectionError = e.message
                 }
-                delay(3_000)
+                delay(if (demo) 1_500 else 3_000)
             }
         }
         if (apps.isEmpty()) refreshApps()
+    }
+
+    private fun record(list: MutableList<Float>, value: Double?) {
+        if (value == null) return
+        list.add(value.toFloat()); while (list.size > HISTORY) list.removeAt(0)
     }
 
     fun stopPolling() { poller?.cancel(); poller = null }
@@ -160,6 +176,17 @@ class CompanionViewModel(app: Application) : AndroidViewModel(app) {
 
     fun launch(name: String) = runAction { it.launch(name) }
     fun screens(action: String) = runAction { it.screens(action) }
+
+    /** Media keys on the PC; refreshes status right away so now-playing updates. */
+    fun media(action: String) {
+        val api = api() ?: return
+        viewModelScope.launch {
+            try {
+                api.media(action)
+                status = PcStatus.from(api.status())
+            } catch (e: Exception) { handle(e) }
+        }
+    }
 
     private fun runAction(block: suspend (SyraBackend) -> String) {
         val api = api() ?: return

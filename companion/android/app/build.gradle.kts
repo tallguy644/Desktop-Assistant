@@ -12,8 +12,8 @@ android {
         applicationId = "com.tallguy644.syracompanion"
         minSdk = 26
         targetSdk = 35
-        versionCode = 3
-        versionName = "1.2-hud"
+        versionCode = 4
+        versionName = "1.3"
     }
 
     // A fixed key (supplied by CI from repository secrets) lets each new build install over the last one.

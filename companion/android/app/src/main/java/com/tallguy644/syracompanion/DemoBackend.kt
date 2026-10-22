@@ -16,12 +16,21 @@ interface SyraBackend {
     suspend fun agenda(): JSONObject
     suspend fun commute(): String
     suspend fun unpair(): JSONObject
+    /** playpause, next, previous, volup, voldown, mute */
+    suspend fun media(action: String): String
 }
 
 /** Sample data so the app can be explored without a PC. Nothing leaves the phone. */
 class DemoBackend : SyraBackend {
     private var tick = 0
     private var screensOff = false
+    private var playing = true
+    private var track = 0
+    private val tracks = listOf(
+        "Spotify" to "Neon Skyline - Midnight Circuit",
+        "YouTube" to "Lo-fi beats to code to",
+        "Spotify" to "The Arc - Reactor Hum",
+    )
     private val appList = listOf("chrome", "spotify", "discord", "steam", "notepad", "calculator", "visual studio code", "obs studio")
 
     override suspend fun status(): JSONObject {
@@ -49,6 +58,7 @@ class DemoBackend : SyraBackend {
             .put("chat", JSONObject().put("ready", true).put("busy", false))
             .put("calendar", true)
             .put("commute", true)
+            .put("nowPlaying", JSONObject().put("source", tracks[track].first).put("title", tracks[track].second).put("playing", playing))
     }
 
     override suspend fun apps(): List<String> { delay(300); return appList.sorted() }
@@ -87,4 +97,21 @@ class DemoBackend : SyraBackend {
     }
 
     override suspend fun unpair(): JSONObject = JSONObject()
+
+    override suspend fun media(action: String): String {
+        delay(150)
+        when (action) {
+            "playpause" -> playing = !playing
+            "next" -> { track = (track + 1) % tracks.size; playing = true }
+            "previous" -> { track = (track + tracks.size - 1) % tracks.size; playing = true }
+        }
+        return when (action) {
+            "playpause" -> if (playing) "Demo: playing." else "Demo: paused."
+            "next" -> "Demo: next track."
+            "previous" -> "Demo: previous track."
+            "volup" -> "Demo: volume up."
+            "voldown" -> "Demo: volume down."
+            else -> "Demo: mute toggled."
+        }
+    }
 }

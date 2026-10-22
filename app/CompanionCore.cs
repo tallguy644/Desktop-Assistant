@@ -211,7 +211,7 @@ namespace JarvisDesk {
      foreach (var a in nic.GetIPProperties().UnicastAddresses) {
       var ip = a.Address; if (ip.AddressFamily != AddressFamily.InterNetwork || IPAddress.IsLoopback(ip) || !CompanionAuth.AllowedRemote(ip)) continue;
       var b = ip.GetAddressBytes(); bool tailscale = b[0] == 100 && b[1] >= 64 && b[1] <= 127;
-      found.Add(ip.ToString() + (tailscale ? "  (Tailscale — works anywhere)" : "  (home Wi-Fi)"));
+      found.Add(ip.ToString() + (tailscale ? "  (Tailscale - works anywhere)" : "  (home Wi-Fi)"));
      }
     }
    } catch { }

@@ -90,3 +90,15 @@ val ReactorIcon: ImageVector by lazy {
         }
     }.build()
 }
+
+/** Play-in-a-ring glyph used for the media tab. */
+val MediaIcon: ImageVector by lazy {
+    ImageVector.Builder("Media", 24.dp, 24.dp, 24f, 24f).apply {
+        path(stroke = SolidColor(Color.White), strokeLineWidth = 2f) {
+            moveTo(12f, 3f); arcTo(9f, 9f, 0f, true, true, 11.99f, 3f); close()
+        }
+        path(fill = SolidColor(Color.White)) {
+            moveTo(10f, 8.5f); lineTo(16f, 12f); lineTo(10f, 15.5f); close()
+        }
+    }.build()
+}
