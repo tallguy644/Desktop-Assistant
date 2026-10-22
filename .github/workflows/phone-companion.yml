@@ -70,4 +70,6 @@ jobs:
           name: Syra-with-companion
           path: |
             app/Syra.exe
+            app/Syra.exe.config
+            app/Syra.ico
             app/TaskbarRecovery.exe
