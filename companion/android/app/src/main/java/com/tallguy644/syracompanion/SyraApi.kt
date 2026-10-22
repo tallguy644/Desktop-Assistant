@@ -13,7 +13,7 @@ import java.net.URL
 class ApiException(val status: Int, message: String) : Exception(message)
 
 /** Talks to the companion API inside Syra on the PC. */
-class SyraApi(host: String, private val port: Int, private val token: String?) {
+class SyraApi(host: String, private val port: Int, private val token: String?) : SyraBackend {
     private val host = host.trim().removePrefix("http://").removePrefix("https://").trimEnd('/')
 
     private fun url(path: String): URL {
@@ -62,15 +62,15 @@ class SyraApi(host: String, private val port: Int, private val token: String?) {
     suspend fun pair(code: String, device: String) =
         call("POST", "/api/pair", JSONObject().put("code", code).put("device", device))
 
-    suspend fun status() = call("GET", "/api/status")
-    suspend fun apps(): List<String> = call("GET", "/api/apps").optJSONArray("apps").strings()
-    suspend fun launch(name: String) = call("POST", "/api/apps/launch", JSONObject().put("name", name)).optString("message")
-    suspend fun screens(action: String) = call("POST", "/api/screens", JSONObject().put("action", action)).optString("message")
-    suspend fun ask(question: String, speak: Boolean) =
+    override suspend fun status(): JSONObject = call("GET", "/api/status")
+    override suspend fun apps(): List<String> = call("GET", "/api/apps").optJSONArray("apps").strings()
+    override suspend fun launch(name: String): String = call("POST", "/api/apps/launch", JSONObject().put("name", name)).optString("message")
+    override suspend fun screens(action: String): String = call("POST", "/api/screens", JSONObject().put("action", action)).optString("message")
+    override suspend fun ask(question: String, speak: Boolean): String =
         call("POST", "/api/ask", JSONObject().put("question", question).put("speak", speak), timeoutMs = 180_000).optString("answer")
-    suspend fun agenda() = call("GET", "/api/agenda", timeoutMs = 25_000)
-    suspend fun commute() = call("GET", "/api/commute", timeoutMs = 40_000).optString("text")
-    suspend fun unpair() = call("POST", "/api/unpair")
+    override suspend fun agenda(): JSONObject = call("GET", "/api/agenda", timeoutMs = 25_000)
+    override suspend fun commute(): String = call("GET", "/api/commute", timeoutMs = 40_000).optString("text")
+    override suspend fun unpair(): JSONObject = call("POST", "/api/unpair")
 }
 
 fun JSONArray?.strings(): List<String> = if (this == null) emptyList() else List(length()) { optString(it) }

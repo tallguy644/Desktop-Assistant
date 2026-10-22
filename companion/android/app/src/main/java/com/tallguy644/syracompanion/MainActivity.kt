@@ -92,7 +92,7 @@ private fun MainScreen(vm: CompanionViewModel) {
             TopAppBar(
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Syra.Background, titleContentColor = Syra.Cyan),
                 title = {
-                    Text((vm.pairing?.pcName ?: "Syra").uppercase() + " / " + Tab.entries[tab].label.uppercase(), fontFamily = FontFamily.Monospace)
+                    Text((vm.pairing?.pcName ?: "Syra").uppercase() + " / " + Tab.entries[tab].label.uppercase() + (if (vm.demo) "  · DEMO" else ""), fontFamily = FontFamily.Monospace)
                 },
                 actions = {
                     StatusDot(vm.status != null && vm.connectionError == null)
@@ -100,7 +100,7 @@ private fun MainScreen(vm: CompanionViewModel) {
                         IconButton(onClick = { menu = true }) { Icon(Icons.Filled.MoreVert, "Menu") }
                         DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
                             DropdownMenuItem(text = { Text("Refresh apps") }, onClick = { menu = false; vm.refreshApps() })
-                            DropdownMenuItem(text = { Text("Unpair this phone") }, onClick = { menu = false; vm.unpair() })
+                            DropdownMenuItem(text = { Text(if (vm.demo) "Exit demo" else "Unpair this phone") }, onClick = { menu = false; vm.unpair() })
                         }
                     }
                 },

@@ -55,7 +55,22 @@ class CompanionViewModel(app: Application) : AndroidViewModel(app) {
 
     private var poller: Job? = null
 
-    private fun api(): SyraApi? = pairing?.let { SyraApi(it.host, it.port, it.token) }
+    /** True while exploring the app with sample data instead of a paired PC. */
+    var demo by mutableStateOf(false)
+        private set
+    private val demoBackend = DemoBackend()
+
+    private fun api(): SyraBackend? = if (demo) demoBackend else pairing?.let { SyraApi(it.host, it.port, it.token) }
+
+    fun startDemo() {
+        demo = true; pairError = null
+        pairing = Pairing("demo", 0, "", "Syra")
+        apps.clear(); answer = null; agenda.clear()
+    }
+
+    private fun resetSession() {
+        pairing = null; status = null; connectionError = null; apps.clear(); answer = null; agenda.clear(); question = ""
+    }
 
     // ---------- Pairing ----------
     fun pair() {
@@ -88,10 +103,11 @@ class CompanionViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun unpair() {
+        if (demo) { stopPolling(); demo = false; resetSession(); return }
         val api = api()
         viewModelScope.launch {
             try { api?.unpair() } catch (e: Exception) { /* Forget locally even if the PC is offline. */ }
-            store.clear(); pairing = null; status = null; apps.clear(); answer = null; agenda.clear()
+            store.clear(); resetSession()
         }
     }
 

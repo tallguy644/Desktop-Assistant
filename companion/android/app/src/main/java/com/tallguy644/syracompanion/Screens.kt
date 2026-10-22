@@ -138,6 +138,11 @@ fun PairScreen(vm: CompanionViewModel) {
             if (vm.pairBusy) CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp, color = Syra.Background)
             else Text("PAIR", fontFamily = FontFamily.Monospace, letterSpacing = 3.sp)
         }
+        OutlinedButton(
+            onClick = { vm.startDemo() }, enabled = !vm.pairBusy,
+            modifier = Modifier.fillMaxWidth().height(52.dp), shape = PanelShape,
+        ) { Text("TRY DEMO", fontFamily = FontFamily.Monospace, letterSpacing = 3.sp) }
+        Text("Explore the app with sample data. No PC needed; nothing is sent anywhere.", color = Syra.Muted, fontSize = 13.sp)
     }
 }
 
@@ -149,6 +154,11 @@ fun DashboardTab(vm: CompanionViewModel) {
         Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
+        if (vm.demo) {
+            Surface(color = Color(0x334FD8FF), shape = PanelShape) {
+                Text("Demo mode: sample data, nothing is sent to a PC. Exit from the ⋮ menu.", Modifier.padding(12.dp), color = Syra.Ink, fontSize = 13.sp)
+            }
+        }
         vm.connectionError?.let {
             Surface(color = Color(0x33FF3B3B), shape = PanelShape) { Text(it, Modifier.padding(12.dp), color = Syra.Ink, fontSize = 14.sp) }
         }
