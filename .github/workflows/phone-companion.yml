@@ -5,11 +5,13 @@ on:
     paths:
       - "app/**"
       - "companion/**"
+      - "store/**"
       - ".github/workflows/phone-companion.yml"
   pull_request:
     paths:
       - "app/**"
       - "companion/**"
+      - "store/**"
   workflow_dispatch:
 
 jobs:
@@ -73,3 +75,31 @@ jobs:
             app/Syra.exe.config
             app/Syra.ico
             app/TaskbarRecovery.exe
+
+  store:
+    name: Build Microsoft Store package
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compile Syra
+        shell: cmd
+        run: app\Build.cmd < NUL
+      - name: Build MSIX
+        shell: powershell
+        run: |
+          $makeappx = Get-ChildItem "${env:ProgramFiles(x86)}\Windows Kits\10\bin\*\x64\makeappx.exe" | Sort-Object FullName -Descending | Select-Object -First 1
+          if (-not $makeappx) { throw 'makeappx.exe not found on the runner.' }
+          $id = Get-Content store\store-identity.json -Raw | ConvertFrom-Json
+          if ([string]::IsNullOrWhiteSpace($id.IdentityName)) {
+            Write-Output '::notice::No Partner Center identity yet; building the development preview to validate packaging.'
+            & .\store\Build-Msix.ps1 -DevelopmentPreview -MakeAppxPath $makeappx.FullName
+          } else {
+            & .\store\Build-Msix.ps1 -IdentityName $id.IdentityName -Publisher $id.Publisher -PublisherDisplayName $id.PublisherDisplayName -DisplayName $id.DisplayName -Version $id.Version -MakeAppxPath $makeappx.FullName
+          }
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Syra-Store-MSIX
+          path: |
+            dist/*.msix
+            dist/PACKAGE-STATUS.txt

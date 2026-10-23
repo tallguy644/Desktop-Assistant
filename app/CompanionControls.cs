@@ -242,6 +242,7 @@ namespace JarvisDesk {
    Log("Phone removed: " + row.Device.Name); RefreshCompanionPage();
   }
   void AllowCompanionFirewall() {
+   if (PackageEnvironment.IsPackaged) { companionStatusText.Text = "The Microsoft Store install already allows paired phones through Windows Firewall."; return; }
    string exe = Process.GetCurrentProcess().MainModule.FileName; int port = companionSettings.Port;
    string rule = "\"Syra phone companion\"";
    string args = "/c netsh advfirewall firewall delete rule name=" + rule + " >nul & netsh advfirewall firewall add rule name=" + rule + " dir=in action=allow protocol=TCP localport=" + port.ToString(CultureInfo.InvariantCulture) + " program=\"" + exe + "\" profile=private,public";
