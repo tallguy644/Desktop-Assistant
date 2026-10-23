@@ -1,0 +1,105 @@
+name: Phone companion
+
+on:
+  push:
+    paths:
+      - "app/**"
+      - "companion/**"
+      - "store/**"
+      - ".github/workflows/phone-companion.yml"
+  pull_request:
+    paths:
+      - "app/**"
+      - "companion/**"
+      - "store/**"
+  workflow_dispatch:
+
+jobs:
+  android:
+    name: Build Android APK
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: companion/android
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Build debug APK
+        env:
+          KEYSTORE_B64: ${{ secrets.SYRA_KEYSTORE_B64 }}
+          SYRA_KEYSTORE_PASSWORD: ${{ secrets.SYRA_KEYSTORE_PASSWORD }}
+        run: |
+          chmod +x gradlew
+          if [ -n "$KEYSTORE_B64" ]; then
+            echo "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/syra.jks"
+            export SYRA_KEYSTORE="$RUNNER_TEMP/syra.jks"
+            echo "Signing with the fixed Syra key."
+          else
+            echo "::warning::No SYRA_KEYSTORE_B64 secret; using a one-off debug key. Uninstall the previous app before installing this build."
+          fi
+          ./gradlew --no-daemon assembleDebug
+      - name: Rename APK
+        run: cp app/build/outputs/apk/debug/app-debug.apk SyraCompanion.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: SyraCompanion-v1.5
+          path: companion/android/SyraCompanion.apk
+
+  windows:
+    name: Build Syra and run companion tests
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compile Syra
+        shell: cmd
+        run: app\Build.cmd < NUL
+      - name: Companion tests
+        shell: powershell
+        run: |
+          & .\app\Test-Calendar.ps1 -Suite Companion
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+      - name: Screen tests (regression)
+        shell: powershell
+        run: |
+          & .\app\Test-Calendar.ps1 -Suite Screens
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Syra-with-companion
+          path: |
+            app/Syra.exe
+            app/Syra.exe.config
+            app/Syra.ico
+            app/TaskbarRecovery.exe
+
+  store:
+    name: Build Microsoft Store package
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compile Syra
+        shell: cmd
+        run: app\Build.cmd < NUL
+      - name: Build MSIX
+        shell: powershell
+        run: |
+          $makeappx = Get-ChildItem "${env:ProgramFiles(x86)}\Windows Kits\10\bin\*\x64\makeappx.exe" | Sort-Object FullName -Descending | Select-Object -First 1
+          if (-not $makeappx) { throw 'makeappx.exe not found on the runner.' }
+          $id = Get-Content store\store-identity.json -Raw | ConvertFrom-Json
+          if ([string]::IsNullOrWhiteSpace($id.IdentityName)) {
+            Write-Output '::notice::No Partner Center identity yet; building the development preview to validate packaging.'
+            & .\store\Build-Msix.ps1 -DevelopmentPreview -MakeAppxPath $makeappx.FullName
+          } else {
+            & .\store\Build-Msix.ps1 -IdentityName $id.IdentityName -Publisher $id.Publisher -PublisherDisplayName $id.PublisherDisplayName -DisplayName $id.DisplayName -Version $id.Version -MakeAppxPath $makeappx.FullName
+          }
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Syra-Store-MSIX
+          path: |
+            dist/*.msix
+            dist/PACKAGE-STATUS.txt

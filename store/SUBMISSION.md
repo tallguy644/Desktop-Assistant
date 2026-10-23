@@ -1,12 +1,24 @@
 # Microsoft Store submission setup
 
+## Quick path (no Windows SDK needed)
+
+1. Create a free individual developer account in [Partner Center](https://partner.microsoft.com/dashboard) (Microsoft account + ID check) and reserve the name **Syra**.
+2. Copy the three values from **Product management → Product identity** (`Package/Identity/Name`, `Package/Identity/Publisher`, `Package/Properties/PublisherDisplayName`) into `store/store-identity.json` and push.
+3. GitHub Actions (**Phone companion** workflow → **Build Microsoft Store package**) builds `Syra-1.0.0.0-x64.msix` as the `Syra-Store-MSIX` artifact.
+4. In Partner Center create a submission: upload that `.msix` under **Packages**, fill **Store listings** from [LISTING-DRAFT.md](LISTING-DRAFT.md), complete pricing, age ratings and properties, then submit. Microsoft signs the package.
+5. For every update, raise `Version` in `store-identity.json` (e.g. `1.0.1.0`), push, and upload the new package in a new submission.
+
+While `IdentityName` is empty, CI builds only the unsigned development preview to prove the package is valid. Never submit the preview.
+
+The detailed manual steps below remain for building on your own PC.
+
 ## What is prepared
 
 Source, bundled dependency licenses, standalone setup recipe, privacy notice, original icon, manifest template and a MakeAppx build script. Microsoft MakeAppx has successfully validated and packed the unsigned development preview. This is a packaging check, **not** certification or a successful packaged install test. The preview identity cannot be used for your Store listing.
 
 ## 1. Create the account and reserve the name
 
-Sign in to [Microsoft Partner Center](https://partner.microsoft.com/dashboard), enroll as a Windows app developer, and complete the current identity/business verification requirements shown there. Reserve your available product name. “Desktop Assistant” is a working title; availability is not guaranteed.
+Sign in to [Microsoft Partner Center](https://partner.microsoft.com/dashboard), enroll as a Windows app developer, and complete the current identity/business verification requirements shown there. Reserve your available product name (Syra, or a variant if it is taken).
 
 Open the product's **Product management > Product identity** and copy the exact Package/Identity/Name, Package/Identity/Publisher and Package/Properties/PublisherDisplayName. Enter those values locally when building. They are not passwords. Do not share signing keys, passwords or access tokens.
 

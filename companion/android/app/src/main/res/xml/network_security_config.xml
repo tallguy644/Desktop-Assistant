@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Syra listens on plain HTTP inside your home network or your Tailscale network.
+     Tailscale encrypts the connection itself; on home Wi-Fi the traffic stays on your LAN.
+     Requests always carry the per-phone pairing token. -->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true" />
+</network-security-config>

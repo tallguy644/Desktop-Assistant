@@ -4,21 +4,21 @@ $installRoot = Join-Path $env:LOCALAPPDATA 'JarvisDesk\bin'
 $desktopLink = Join-Path ([Environment]::GetFolderPath('Desktop')) 'Desktop Assistant.lnk'
 $startLink = Join-Path ([Environment]::GetFolderPath('Programs')) 'Desktop Assistant.lnk'
 $backgroundLinks=@((Join-Path ([Environment]::GetFolderPath('Desktop')) 'Desktop Assistant Background.lnk'),(Join-Path ([Environment]::GetFolderPath('Programs')) 'Desktop Assistant Background.lnk'))
-if (Get-Process -Name JarvisDesk,Skynet -ErrorAction SilentlyContinue) { throw 'Close the assistant before installing or uninstalling.' }
+if (Get-Process -Name JarvisDesk,Skynet,Syra -ErrorAction SilentlyContinue) { throw 'Close the assistant before installing or uninstalling.' }
 if ($Uninstall) {
     foreach ($link in @($desktopLink, $startLink)+$backgroundLinks) { if (Test-Path -LiteralPath $link) { Remove-Item -LiteralPath $link } }
     $runPath='HKCU:\Software\Microsoft\Windows\CurrentVersion\Run'
     $startupValue=(Get-ItemProperty -LiteralPath $runPath -Name DesktopAssistant -ErrorAction SilentlyContinue).DesktopAssistant
-    if($startupValue -eq ('"'+(Join-Path $installRoot 'Skynet.exe')+'"')) {Remove-ItemProperty -LiteralPath $runPath -Name DesktopAssistant -ErrorAction SilentlyContinue}
+    if($startupValue -eq ('"'+(Join-Path $installRoot 'Syra.exe')+'"') -or $startupValue -eq ('"'+(Join-Path $installRoot 'Skynet.exe')+'"')) {Remove-ItemProperty -LiteralPath $runPath -Name DesktopAssistant -ErrorAction SilentlyContinue}
     $expected = [IO.Path]::GetFullPath((Join-Path $env:LOCALAPPDATA 'JarvisDesk\bin'))
     if ([IO.Path]::GetFullPath($installRoot) -ne $expected) { throw 'Unexpected installation path.' }
     if (Test-Path -LiteralPath $installRoot) { Remove-Item -LiteralPath $installRoot -Recurse -Force }
     Write-Host 'Removed app and shortcuts. Your mappings have been kept.'
     exit
 }
-if (!(Test-Path -LiteralPath (Join-Path $PSScriptRoot 'Skynet.exe'))) { throw 'Skynet.exe is missing. Run Build.cmd first.' }
+if (!(Test-Path -LiteralPath (Join-Path $PSScriptRoot 'Syra.exe'))) { throw 'Syra.exe is missing. Run Build.cmd first.' }
 New-Item -ItemType Directory -Path $installRoot -Force | Out-Null
-foreach ($name in @('Skynet.exe', 'TaskbarRecovery.exe', 'Skynet.exe.config', 'Skynet.ico', 'Microsoft.Web.WebView2.Core.dll', 'Microsoft.Web.WebView2.Wpf.dll', 'WebView2Loader.dll', 'Ical.Net.dll', 'NodaTime.dll', 'Portable.System.DateTimeOnly.dll', 'System.Memory.dll', 'System.Buffers.dll', 'System.Numerics.Vectors.dll', 'System.Runtime.CompilerServices.Unsafe.dll', 'README.md', 'PRIVACY.md', 'DESKTOP-SETUP.md', 'PC-SETUP.md', 'APPEARANCE.md', 'VOICE-SETUP.md', 'CHATGPT-SETUP.md', 'CALENDAR-SETUP.md', 'COMMUTE-SETUP.md', 'SCREEN-CONTROL.md', 'Configure-Screens.ps1', 'TEMPERATURE-ALERTS.md', 'THIRD-PARTY-NOTICES.md', 'Uninstall.cmd', 'Setup.ps1')) {
+foreach ($name in @('Syra.exe', 'TaskbarRecovery.exe', 'Syra.exe.config', 'Syra.ico', 'Microsoft.Web.WebView2.Core.dll', 'Microsoft.Web.WebView2.Wpf.dll', 'WebView2Loader.dll', 'Ical.Net.dll', 'NodaTime.dll', 'Portable.System.DateTimeOnly.dll', 'System.Memory.dll', 'System.Buffers.dll', 'System.Numerics.Vectors.dll', 'System.Runtime.CompilerServices.Unsafe.dll', 'README.md', 'PRIVACY.md', 'DESKTOP-SETUP.md', 'PC-SETUP.md', 'APPEARANCE.md', 'VOICE-SETUP.md', 'CHATGPT-SETUP.md', 'CALENDAR-SETUP.md', 'COMMUTE-SETUP.md', 'SCREEN-CONTROL.md', 'Configure-Screens.ps1', 'TEMPERATURE-ALERTS.md', 'THIRD-PARTY-NOTICES.md', 'Uninstall.cmd', 'Setup.ps1')) {
     $source = Join-Path $PSScriptRoot $name
     $destination = Join-Path $installRoot $name
     if ([IO.Path]::GetFullPath($source) -ne [IO.Path]::GetFullPath($destination)) {
@@ -33,20 +33,20 @@ if ([IO.Path]::GetFullPath((Join-Path $PSScriptRoot 'Licenses')) -ne [IO.Path]::
 $shell = New-Object -ComObject WScript.Shell
 foreach ($link in @($desktopLink, $startLink)) {
     $shortcut = $shell.CreateShortcut($link)
-    $shortcut.TargetPath = Join-Path $installRoot 'Skynet.exe'
+    $shortcut.TargetPath = Join-Path $installRoot 'Syra.exe'
     $shortcut.Arguments = ''
     $shortcut.WorkingDirectory = $installRoot
     $shortcut.Description = 'Customizable desktop voice assistant'
-    $shortcut.IconLocation = (Join-Path $installRoot 'Skynet.ico') + ',0'
+    $shortcut.IconLocation = (Join-Path $installRoot 'Syra.ico') + ',0'
     $shortcut.Save()
 }
 foreach($link in $backgroundLinks) {
     $shortcut=$shell.CreateShortcut($link)
-    $shortcut.TargetPath=Join-Path $installRoot 'Skynet.exe'
+    $shortcut.TargetPath=Join-Path $installRoot 'Syra.exe'
     $shortcut.Arguments='--desktop'
     $shortcut.WorkingDirectory=$installRoot
     $shortcut.Description='Interactive desktop background with voice, chat and system sensors'
-    $shortcut.IconLocation=(Join-Path $installRoot 'Skynet.ico')+',0'
+    $shortcut.IconLocation=(Join-Path $installRoot 'Syra.ico')+',0'
     $shortcut.Save()
 }
 # Retain the original settings location and encryption identity during the rename.
@@ -58,7 +58,11 @@ foreach ($oldShortcutPath in @((Join-Path ([Environment]::GetFolderPath('Desktop
         if ($oldShortcut.TargetPath -eq $oldExecutable -or $oldShortcut.TargetPath -eq (Join-Path $installRoot 'Skynet.exe')) { Remove-Item -LiteralPath $oldShortcutPath }
     }
 }
-foreach ($oldBinary in @('JarvisDesk.exe', 'JarvisDesk.ico')) {
+# Skynet.exe was renamed to Syra.exe: point "Start with Windows" at the new file, then remove the old files.
+$runPath='HKCU:\Software\Microsoft\Windows\CurrentVersion\Run'
+$startupValue=(Get-ItemProperty -LiteralPath $runPath -Name DesktopAssistant -ErrorAction SilentlyContinue).DesktopAssistant
+if($startupValue -eq ('"'+(Join-Path $installRoot 'Skynet.exe')+'"')) { Set-ItemProperty -LiteralPath $runPath -Name DesktopAssistant -Value ('"'+(Join-Path $installRoot 'Syra.exe')+'"') }
+foreach ($oldBinary in @('JarvisDesk.exe', 'JarvisDesk.ico', 'Skynet.exe', 'Skynet.exe.config', 'Skynet.ico')) {
     $oldBinaryPath = Join-Path $installRoot $oldBinary
     if (Test-Path -LiteralPath $oldBinaryPath) { Remove-Item -LiteralPath $oldBinaryPath }
 }

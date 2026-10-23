@@ -1,0 +1,8 @@
+{
+  "_help": "Fill these from Partner Center > your app > Product management > Product identity, then push. GitHub then builds the Store-ready MSIX (artifact: Syra-Store-MSIX). These are public identifiers, not secrets. Leave IdentityName empty to build only the unsigned development preview.",
+  "IdentityName": "",
+  "Publisher": "",
+  "PublisherDisplayName": "",
+  "DisplayName": "Syra",
+  "Version": "1.0.0.0"
+}

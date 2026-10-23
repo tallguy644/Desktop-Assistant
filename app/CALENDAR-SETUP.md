@@ -42,6 +42,6 @@ The cache also includes next-day events for early work departures before midnigh
 
 ## Build and check
 
-Keep the entire extracted folder together, including all DLL files and **Skynet.exe.config**. **Install.cmd** copies these dependencies automatically. No separate calendar runtime or Google Cloud project is needed. The included parser libraries and licenses are listed in [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
+Keep the entire extracted folder together, including all DLL files and **Syra.exe.config**. **Install.cmd** copies these dependencies automatically. No separate calendar runtime or Google Cloud project is needed. The included parser libraries and licenses are listed in [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
 
 Run **Build.cmd** to compile the source with the bundled libraries. `powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\Test-Calendar.ps1` runs synthetic recurrence, date/time, URL restriction, cancellation, and encrypted-cache tests. It uses fixture calendars and never requests your private feed.

@@ -2,7 +2,7 @@ param([string]$TestDirectory)
 $ErrorActionPreference='Stop'
 if(!$TestDirectory){$TestDirectory=Join-Path ([IO.Path]::GetTempPath()) ('DesktopVoiceCatalog-'+[guid]::NewGuid().ToString('N'))}
 New-Item -ItemType Directory -Path $TestDirectory -Force | Out-Null
-$app=Join-Path $PSScriptRoot 'Skynet.exe'
+$app=Join-Path $PSScriptRoot 'Syra.exe'
 $null=[Reflection.Assembly]::LoadFrom($app)
 $library=Join-Path $TestDirectory 'VoiceCatalogTests.dll'
 $compiler=Join-Path $env:WINDIR 'Microsoft.NET\Framework64\v4.0.30319\csc.exe'

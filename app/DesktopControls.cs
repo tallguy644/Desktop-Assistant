@@ -63,7 +63,7 @@ namespace JarvisDesk {
    if(args.Contains("--window")) {desktopPreferences.Enabled=false;desktopPreferences.Save(DesktopSettingsPath);}
    desktopSignals=new[]{DesktopCommands.Open(0,dataDir),DesktopCommands.Open(1,dataDir),DesktopCommands.Open(2,dataDir)};
    desktopTray=new System.Windows.Forms.NotifyIcon {Text="Desktop Assistant / desktop controls"};
-   string icon=Path.Combine(AppDomain.CurrentDomain.BaseDirectory,"Skynet.ico");
+   string icon=Path.Combine(AppDomain.CurrentDomain.BaseDirectory,"Syra.ico");
    if(File.Exists(icon)) {desktopTrayIcon=new System.Drawing.Icon(icon);desktopTray.Icon=desktopTrayIcon;}else desktopTray.Icon=System.Drawing.SystemIcons.Application;
    var menu=new System.Windows.Forms.ContextMenuStrip();
    menu.Items.Add("Interactive desktop",null,delegate{DesktopUI(delegate{EnableDesktop(true);});});

@@ -19,8 +19,8 @@ using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using System.Windows.Threading;
 
-[assembly: System.Reflection.AssemblyTitle("Desktop Assistant")]
-[assembly: System.Reflection.AssemblyProduct("Desktop Assistant")]
+[assembly: System.Reflection.AssemblyTitle("Syra")]
+[assembly: System.Reflection.AssemblyProduct("Syra")]
 [assembly: System.Reflection.AssemblyDescription("Customizable desktop voice assistant")]
 
 namespace JarvisDesk {
@@ -82,12 +82,12 @@ namespace JarvisDesk {
    personalGreeting=PersonalGreeting.Load(PersonalGreetingPath);
    chatNamePreferences=ChatNamePreferences.Load(ChatNamePath);
    Title = AssistantIdentity.CurrentName; Width = 1366; Height = 768; MinWidth = 1080; MinHeight = 608;
-   string iconPath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Skynet.ico");
+   string iconPath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Syra.ico");
    if (File.Exists(iconPath)) { using (var iconStream = File.OpenRead(iconPath)) Icon = BitmapDecoder.Create(iconStream, BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.OnLoad).Frames.OrderByDescending(frame => frame.PixelWidth).First(); }
    WindowStartupLocation = WindowStartupLocation.CenterScreen;
    Background = new SolidColorBrush(Color.FromRgb(6, 13, 24)); Foreground = Brushes.White; FontFamily = new FontFamily("Segoe UI");
    Loaded+=delegate{FitStartupWindow();};
-   BuildUI(); LoadMaps(); RefreshList(); InitVoice(); InitializeChat(); InitializeCalendar(); InitializeTemperatureAlerts(); InitializeCommute(); InitializeScreenControl();
+   BuildUI(); LoadMaps(); RefreshList(); InitVoice(); InitializeChat(); InitializeCalendar(); InitializeTemperatureAlerts(); InitializeCommute(); InitializeScreenControl(); InitializeCompanion(); MigrateLegacyStartup();
    timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(250) };
    timer.Tick += delegate { UpdateReferenceClock(); CheckQuestionTimeout(); CheckCalendar(); CheckThermalAlerts(); CheckCommuteReminders(); UpdateNextUp(); CheckAgendaNarration(); CheckScreenControl();
     if (!continuous && pttUntil != DateTime.MinValue && DateTime.UtcNow > pttUntil) { pttUntil = DateTime.MinValue; StopRecognition(); SetState("STANDBY", "Push-to-talk window ended. Ready when you are."); }
@@ -155,6 +155,7 @@ namespace JarvisDesk {
    });
   }
   void ShowSystem(SystemSnapshot snapshot) {
+   companionSnapshot = snapshot;
    cpuLoad.Text = (snapshot.CpuUsage.HasValue ? snapshot.CpuUsage.Value.ToString("0") + "%" : "—"); cpuBar.Width = snapshot.CpuUsage.HasValue ? Math.Max(0, Math.Min(260, snapshot.CpuUsage.Value * 2.6)) : 0;
    gpuLoad.Text = (snapshot.GpuUsage.HasValue ? snapshot.GpuUsage.Value.ToString("0") + "%" : "—"); gpuLoad.ToolTip = snapshot.GpuUsageDetail; gpuBar.ToolTip = snapshot.GpuUsageDetail;
    gpuBar.Width = snapshot.GpuUsage.HasValue ? Math.Max(0, Math.Min(260, snapshot.GpuUsage.Value * 2.6)) : 0;
