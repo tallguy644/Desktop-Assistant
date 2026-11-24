@@ -48,6 +48,7 @@ jobs:
         with:
           name: SyraCompanion-v1.5
           path: companion/android/SyraCompanion.apk
+          retention-days: 5
 
   windows:
     name: Build Syra and run companion tests
@@ -75,6 +76,7 @@ jobs:
             app/Syra.exe.config
             app/Syra.ico
             app/TaskbarRecovery.exe
+          retention-days: 5
 
   store:
     name: Build Microsoft Store package
@@ -103,3 +105,4 @@ jobs:
           path: |
             dist/*.msix
             dist/PACKAGE-STATUS.txt
+          retention-days: 5
